@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" width="200" height="180">
+<path d="M17 120 L100 168 L183 120 L100 72 Z" fill="#59616B"/>
+<path d="M17 120 L100 168 L100 175 L17 127 Z" fill="#434951"/>
+<path d="M100 168 L183 120 L183 127 L100 175 Z" fill="#363B42"/>
+<rect x="157" y="78" width="3" height="34" fill="#8C95A1"/>
+<rect x="149" y="68" width="19" height="13" rx="2" fill="#2E9E6E"/>
+<path d="M153 74.5 h11" stroke="#F5F6F8" stroke-width="2"/>
+<path d="M51.5 110 L110.4 144 L110.4 116 L51.5 82 Z" fill="#E6E9ED"/>
+<path d="M110.4 144 L148.5 122 L148.5 94 L110.4 116 Z" fill="#BCC3CC"/>
+<path d="M51.5 82 L110.4 116 L148.5 94 L89.6 60 Z" fill="#F5F6F8"/>
+<path d="M51.5 82 L110.4 116 L110.4 122 L51.5 88 Z" fill="#2E9E6E"/>
+<path d="M110.4 116 L148.5 94 L148.5 100 L110.4 122 Z" fill="#23805A"/>
+<path d="M56 110 l50 28.9 v-16 l-50 -28.9 z" fill="#7FB3D9"/>
+<path d="M66 115.8 v-16 M76 121.6 v-16 M86 127.3 v-16 M96 133.1 v-16" stroke="#5E93BD" stroke-width="1.2"/>
+<path d="M118 139.6 l10 -5.8 v-12 l-10 5.8 z M134 130.4 l10 -5.8 v-12 l-10 5.8 z" fill="#5E93BD"/>
+<path d="M92 76 L98.9 80 L98.9 75 L92 71 Z" fill="#C8CDD3"/>
+<path d="M98.9 80 L105.8 76 L105.8 71 L98.9 75 Z" fill="#A9B0B8"/>
+<path d="M92 71 L98.9 75 L105.8 71 L98.9 67 Z" fill="#D5DAE0"/>
+<path d="M112 87 L118.9 91 L118.9 86 L112 82 Z" fill="#C8CDD3"/>
+<path d="M118.9 91 L125.8 87 L125.8 82 L118.9 86 Z" fill="#A9B0B8"/>
+<path d="M112 82 L118.9 86 L125.8 82 L118.9 78 Z" fill="#D5DAE0"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 160 160" width="160" height="160">
+<defs>
+<g id="stalk">
+<path d="M80 150 Q80 100 80 34" stroke="#B8923A" stroke-width="3" fill="none"/>
+<path d="M80 34 L80 20 M76 38 L72 24 M84 38 L88 24" stroke="#D8B356" stroke-width="1.2"/>
+<g fill="#E3BE5F">
+<ellipse cx="74" cy="44" rx="4.5" ry="8" transform="rotate(-25 74 44)"/><ellipse cx="86" cy="44" rx="4.5" ry="8" transform="rotate(25 86 44)"/>
+<ellipse cx="74" cy="56" rx="4.5" ry="8" transform="rotate(-25 74 56)"/><ellipse cx="86" cy="56" rx="4.5" ry="8" transform="rotate(25 86 56)"/>
+<ellipse cx="74" cy="68" rx="4.5" ry="8" transform="rotate(-25 74 68)"/><ellipse cx="86" cy="68" rx="4.5" ry="8" transform="rotate(25 86 68)"/>
+<ellipse cx="74" cy="80" rx="4.5" ry="8" transform="rotate(-25 74 80)"/><ellipse cx="86" cy="80" rx="4.5" ry="8" transform="rotate(25 86 80)"/>
+</g>
+<ellipse cx="80" cy="38" rx="4" ry="7" fill="#F0D27E"/>
+</g>
+</defs>
+<use xlink:href="#stalk" href="#stalk" transform="rotate(-20 80 150)" opacity="0.85"/>
+<use xlink:href="#stalk" href="#stalk" transform="rotate(20 80 150)" opacity="0.85"/>
+<use xlink:href="#stalk" href="#stalk"/>
+<path d="M66 128 Q80 136 94 128 L92 138 Q80 144 68 138 Z" fill="#C0392B"/>
+</svg>

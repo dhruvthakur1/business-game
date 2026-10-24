@@ -1,0 +1,7 @@
+{
+  "name": "mercantile-shared",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Game rules and catalog shared by server/ and web/."
+}

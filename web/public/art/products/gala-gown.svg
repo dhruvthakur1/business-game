@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<defs><linearGradient id="gown" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C2345E"/><stop offset="0.55" stop-color="#8E1F3F"/><stop offset="1" stop-color="#4E0D22"/></linearGradient></defs>
+<path d="M70 10 L68 30 M90 10 L92 30" stroke="#8E1F3F" stroke-width="2.5"/>
+<path d="M66 28 Q80 36 94 28 L98 60 L62 60 Z" fill="url(#gown)"/>
+<path d="M62 60 Q44 104 18 150 L142 150 Q116 104 98 60 Z" fill="url(#gown)"/>
+<path d="M80 62 Q76 110 70 150 M80 62 Q92 108 110 150" stroke="#6E1530" stroke-width="1.5" fill="none" opacity="0.8"/>
+<path d="M62 58 L98 58 L98 64 L62 64 Z" fill="#D4A64A"/>
+<circle cx="80" cy="61" r="3.5" fill="#F6D88A"/>
+<g fill="#FFD9E4" opacity="0.9">
+<circle cx="52" cy="112" r="1.2"/><circle cx="66" cy="98" r="1"/><circle cx="96" cy="104" r="1.2"/><circle cx="110" cy="124" r="1"/><circle cx="40" cy="136" r="1.2"/><circle cx="82" cy="130" r="1"/><circle cx="124" cy="142" r="1.2"/><circle cx="58" cy="140" r="1"/><circle cx="78" cy="44" r="1"/><circle cx="88" cy="50" r="0.8"/>
+</g>
+<path d="M130 70 L131.6 74.4 L136 76 L131.6 77.6 L130 82 L128.4 77.6 L124 76 L128.4 74.4 Z M30 72 L31.2 75.8 L35 77 L31.2 78.2 L30 82 L28.8 78.2 L25 77 L28.8 75.8 Z" fill="#F6D88A"/>
+</svg>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Research tree</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="research" hint-size="100%,1100px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Research" subtitle="Eight families · each tier raises your quality cap and unlocks recipes" hint-size="100%,72px"></dc-import>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">R&amp;D Lab · Lv 2</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">140 <span style="font-size: 15px; color: #9AA4B2">RP / day</span></span>
+        <span style="font-size: 12px; color: #9AA4B2">Focus: <strong style="color: #E8EAED">{{ focusName }}</strong></span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Research points on hand</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">320</span>
+        <span style="font-size: 12px; color: #9AA4B2">Tradeable on the exchange · <a href="Market.dc.html">buy or sell</a></span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Innovation rank</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">#1,204</span>
+        <span style="font-size: 12px; color: #9AA4B2">+500 bonus for being first to a quality tier</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <div style="flex: 3 1 620px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px; overflow-x: auto">
+        <div style="display: grid; grid-template-columns: 140px repeat(5, minmax(96px, 1fr)); gap: 10px; min-width: 660px; padding-bottom: 6px; font-size: 12px; color: #9AA4B2">
+          <span>Family</span>
+          <span class="mono" style="text-align: center">Q1 · 50</span><span class="mono" style="text-align: center">Q2 · 250</span><span class="mono" style="text-align: center">Q3 · 1.5k</span><span class="mono" style="text-align: center">Q4 · 6k</span><span class="mono" style="text-align: center">Q5 · 20k</span>
+        </div>
+        <sc-for list="{{ fams }}" as="f" hint-placeholder-count="8">
+          <div style="display: grid; grid-template-columns: 140px repeat(5, minmax(96px, 1fr)); gap: 10px; min-width: 660px; align-items: center; position: relative">
+            <div style="display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{ f.color }}"></span>{{ f.name }}</span>
+              <span class="mono" style="font-size: 11px; color: #9AA4B2">{{ f.ptsLabel }}</span>
+            </div>
+            <sc-for list="{{ f.nodes }}" as="n" hint-placeholder-count="5">
+              <button onClick="{{ n.pick }}" aria-pressed="{{ n.sel }}" aria-label="{{ n.aria }}" style="min-height: 56px; padding: 8px 10px; border-radius: 12px; border: 1.5px solid {{ n.border }}; background: {{ n.bg }}; color: {{ n.fg }}; cursor: pointer; display: flex; flex-direction: column; gap: 4px; text-align: left; font-family: Inter, sans-serif; position: relative; overflow: hidden">
+                <span style="font-size: 12px; font-weight: 600; line-height: 1.25">{{ n.title }}</span>
+                <span style="height: 4px; background: #252C38; border-radius: 999px; overflow: hidden; width: 100%"><span style="display: block; height: 100%; width: {{ n.pct }}; background: {{ f.color }}"></span></span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-for>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #9AA4B2; padding-top: 10px">
+          <span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; border-radius: 4px; background: #1B2A22; border: 1.5px solid #2F5A42"></span>Researched</span>
+          <span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; border-radius: 4px; background: #181D26; border: 1.5px solid #F2B33D"></span>In progress</span>
+          <span style="display: flex; gap: 6px; align-items: center"><span style="width: 12px; height: 12px; border-radius: 4px; background: #11151B; border: 1.5px solid #252C38"></span>Locked</span>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 320px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: {{ sel.color }}">{{ sel.family }} · Q{{ sel.q }}</span>
+          <h2 class="disp" style="margin: 0; font-size: 24px; font-weight: 600">{{ sel.title }}</h2>
+          <span style="font-size: 13px; font-weight: 600; color: {{ sel.stateColor }}">{{ sel.state }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #9AA4B2">Progress</span><span class="mono">{{ sel.progress }}</span></div>
+          <div style="height: 10px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: {{ sel.pct }}; height: 100%; background: {{ sel.color }}"></div></div>
+          <span style="font-size: 13px; color: #9AA4B2">{{ sel.eta }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #9AA4B2">Unlocks</span>
+          <span style="font-size: 14px; line-height: 1.5">{{ sel.unlock }}</span>
+          <span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Output quality in this family can reach Q{{ sel.q }} when inputs allow (never above the lowest input + 1).</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <button onClick="{{ setFocus }}" disabled="{{ sel.isFocus }}" style="height: 48px; border: 0; border-radius: 10px; background: {{ sel.focusBg }}; color: {{ sel.focusFg }}; font: 700 15px Inter, sans-serif; cursor: pointer">{{ sel.focusLabel }}</button>
+          <a href="Market.dc.html" style="display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font-size: 14px; font-weight: 600; text-decoration: none">Buy research points</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { f: 1, q: 3, focus: 1 };
+  }
+  renderVals() {
+    const THR = [50, 250, 1500, 6000, 20000];
+    const F = [
+      ['Agri', '#6CC070', 1620, ['Fertilizer mix · +5% yield', 'Cotton & coffee seeds', 'Greenhouses', 'Precision farming · +10% yield', 'Heirloom crops']],
+      ['Food', '#F2994A', 410, ['Pastries', 'Cheese', 'Packaged meals', 'Chocolate', 'Haute cuisine']],
+      ['Textiles', '#C59BFF', 0, ['Fine fabric', 'Denim & jeans', 'Dyes & prints', 'Silk weaving', 'Couture']],
+      ['Metals', '#E07B39', 260, ['Alloy steel', 'Aluminium', 'Copper wire', 'Precision casting', 'Aerospace alloys']],
+      ['Electronics', '#5AA9FF', 0, ['Circuit boards', 'Display panels', 'Phone batteries', 'Advanced chips', 'Server racks']],
+      ['Auto', '#9AA9BC', 0, ['Tires', 'Engines', 'EV battery packs', 'SUVs', 'Sports cars']],
+      ['Luxury', '#F2B33D', 0, ['Cut gems', 'Watch movement parts', 'Haute-couture line', 'Diamond rings', 'Hypercar trim']],
+      ['Energy', '#3DC7C0', 90, ['Grid storage', 'Solar panels', 'Efficient turbines · −10% coal', 'Wind farms', 'Smart grid']]
+    ];
+    const fmt = (n) => n.toLocaleString('en-US');
+    const st = this.state;
+    const nodeInfo = (fi, qi) => {
+      const pts = F[fi][2], prev = qi === 0 ? 0 : THR[qi - 1], thr = THR[qi];
+      const done = pts >= thr;
+      const current = !done && pts >= prev;
+      const pct = done ? 100 : (current ? Math.round((pts - prev) / (thr - prev) * 100) : 0);
+      return { done, current, pct, pts, prev, thr };
+    };
+    const fams = F.map(([name, color, pts, unl], fi) => ({
+      name, color, ptsLabel: fmt(pts) + ' RP',
+      nodes: unl.map((title, qi) => {
+        const n = nodeInfo(fi, qi);
+        const sel = st.f === fi && st.q === qi + 1;
+        return {
+          title, sel, pct: n.pct + '%',
+          aria: name + ' Q' + (qi + 1) + ': ' + title + (n.done ? ', researched' : n.current ? ', in progress' : ', locked'),
+          border: sel ? '#E8EAED' : (n.done ? '#2F5A42' : n.current ? '#F2B33D' : '#252C38'),
+          bg: n.done ? '#1B2A22' : (n.current ? '#181D26' : '#11151B'),
+          fg: n.done || n.current ? '#E8EAED' : '#9AA4B2',
+          pick: () => this.setState({ f: fi, q: qi + 1 })
+        };
+      })
+    }));
+    const fi = st.f, qi = st.q - 1, n = nodeInfo(fi, qi);
+    const isFocus = st.focus === fi;
+    const left = n.thr - n.pts;
+    const eta = n.done ? 'Already researched.'
+      : (isFocus ? 'About ' + Math.ceil(left / 140) + ' days at your lab’s 140 RP/day.' : 'Not your lab’s focus. Switch focus to start earning points here.');
+    return {
+      fams,
+      focusName: F[st.focus][0],
+      sel: {
+        family: F[fi][0], color: F[fi][1], q: st.q, title: F[fi][3][qi],
+        state: n.done ? 'Researched' : (n.current ? 'In progress' : 'Locked · finish Q' + st.q + ' prerequisites first'),
+        stateColor: n.done ? '#3FBF7F' : (n.current ? '#F2B33D' : '#9AA4B2'),
+        progress: fmt(Math.min(n.pts, n.thr)) + ' / ' + fmt(n.thr) + ' RP',
+        pct: Math.min(100, Math.round(n.pts / n.thr * 100)) + '%',
+        eta, unlock: F[fi][3][qi] + ' recipes and products, plus a +1 research bonus to ' + F[fi][0] + ' output quality.',
+        isFocus,
+        focusBg: isFocus ? '#1C212A' : '#F2B33D', focusFg: isFocus ? '#9AA4B2' : '#1A1405',
+        focusLabel: isFocus ? 'Lab already focused on ' + F[fi][0] : 'Focus lab on ' + F[fi][0]
+      },
+      setFocus: () => this.setState({ focus: fi })
+    };
+  }
+}
+</script>
+</body>
+</html>

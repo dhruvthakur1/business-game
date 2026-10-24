@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mercantile product art</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 2700px; box-sizing: border-box; padding: 72px 80px; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; gap: 56px">
+
+  <header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 48px">
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 700px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #F2B33D">Product art · kit v0.1</span>
+      <h1 class="disp" style="margin: 0; font-size: 48px; font-weight: 700; letter-spacing: -1px">You should see what you bought</h1>
+      <p style="margin: 0; font-size: 16px; color: #9AA4B2; line-height: 1.55">34 drawings: the showroom ladders, luxury and fashion, big-ticket toys, and everyday production goods. Each step up a ladder changes material, detail and finish, so you can tell rung 2 from rung 5 at thumbnail size.</p>
+    </div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; font-size: 13px; width: 540px">
+      <span style="color: #9AA4B2">View</span><span>Side profile (vehicles), front (watches, goods)</span>
+      <span style="color: #9AA4B2">Canvas</span><span>160×160 · vehicles 200×150 · transparent</span>
+      <span style="color: #9AA4B2">Ground</span><span>Soft ellipse shadow at 25% black</span>
+      <span style="color: #9AA4B2">Prestige</span><span>Gradients, sparkles and halos from rung 4 up</span>
+    </div>
+  </header>
+
+  <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 12px; color: #F2B33D">MATERIAL</span><strong style="font-size: 15px">Plastic → steel → gold → ceramic</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">The cheapest rungs are flat colors. Precious metals get a gradient.</span></div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 12px; color: #F2B33D">DETAIL</span><strong style="font-size: 15px">More parts as you climb</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Watches go from 3 hands, to a date window, to subdials, to a visible tourbillon.</span></div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 12px; color: #F2B33D">SILHOUETTE</span><strong style="font-size: 15px">Lower, longer, louder</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Cars drop their roofline and grow wings, intakes and light strips.</span></div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><span class="mono" style="font-size: 12px; color: #F2B33D">RARITY</span><strong style="font-size: 15px">Numbered and glowing</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Limited items carry a serial ("07 / 100") and a gold halo nobody else's copy has.</span></div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 20px">
+    <h2 class="disp" style="margin: 0; font-size: 28px; font-weight: 600">Garage</h2>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ cars }}" as="p" hint-placeholder-count="6">
+        <article style="background: #12161D; border: 1px solid {{ p.border }}; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="background: #181D26; height: 150px; display: flex; align-items: center; justify-content: center"><img src="{{ p.img }}" alt="{{ p.name }}" style="width: 100%; height: 140px; object-fit: contain"></div>
+          <div style="padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px">
+            <span class="mono" style="font-size: 11px; color: {{ p.tagColor }}">{{ p.tag }}</span>
+            <strong style="font-size: 14px">{{ p.name }}</strong>
+            <span class="mono" style="font-size: 13px; color: #9AA4B2">{{ p.price }}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 20px">
+    <h2 class="disp" style="margin: 0; font-size: 28px; font-weight: 600">Vault · watches</h2>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ watches }}" as="p" hint-placeholder-count="5">
+        <article style="background: #12161D; border: 1px solid {{ p.border }}; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="background: #181D26; height: 210px; display: flex; align-items: center; justify-content: center"><img src="{{ p.img }}" alt="{{ p.name }}" style="width: 190px; height: 190px"></div>
+          <div style="padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 4px">
+            <span class="mono" style="font-size: 11px; color: {{ p.tagColor }}">{{ p.tag }}</span>
+            <strong style="font-size: 15px">{{ p.name }}</strong>
+            <span style="font-size: 12px; color: #9AA4B2; line-height: 1.4">{{ p.note }}</span>
+            <span class="mono" style="font-size: 13px; color: #9AA4B2">{{ p.price }}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 20px">
+    <h2 class="disp" style="margin: 0; font-size: 28px; font-weight: 600">Jewelry, bags &amp; wardrobe</h2>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ luxe }}" as="p" hint-placeholder-count="7">
+        <article style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="background: #181D26; height: 150px; display: flex; align-items: center; justify-content: center"><img src="{{ p.img }}" alt="{{ p.name }}" style="width: 136px; height: 136px"></div>
+          <div style="padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px">
+            <strong style="font-size: 14px">{{ p.name }}</strong>
+            <span class="mono" style="font-size: 12px; color: #9AA4B2">{{ p.price }}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 20px">
+    <h2 class="disp" style="margin: 0; font-size: 28px; font-weight: 600">Big-ticket &amp; electronics</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ big }}" as="p" hint-placeholder-count="4">
+        <article style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="background: #181D26; height: 190px; display: flex; align-items: center; justify-content: center"><img src="{{ p.img }}" alt="{{ p.name }}" style="width: 100%; height: 180px; object-fit: contain"></div>
+          <div style="padding: 12px 16px 16px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+            <strong style="font-size: 15px">{{ p.name }}</strong>
+            <span class="mono" style="font-size: 13px; color: #9AA4B2">{{ p.price }}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <h2 class="disp" style="margin: 0; font-size: 28px; font-weight: 600">Production goods</h2>
+      <span style="font-size: 13px; color: #9AA4B2">Used in the exchange, warehouse and recipe rows. Reference price per unit.</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{ goods }}" as="p" hint-placeholder-count="12">
+        <article style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 6px">
+          <img src="{{ p.img }}" alt="{{ p.name }}" style="width: 104px; height: 104px">
+          <strong style="font-size: 14px">{{ p.name }}</strong>
+          <div style="display: flex; gap: 6px; align-items: center">
+            <span style="font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 5px; background: {{ p.chipBg }}; color: {{ p.chipFg }}">{{ p.tier }}</span>
+            <span class="mono" style="font-size: 12px; color: #9AA4B2">{{ p.price }}</span>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+      <h2 class="disp" style="margin: 0; font-size: 22px; font-weight: 600">Quality is a frame, not a new drawing</h2>
+      <p style="margin: 0; font-size: 13px; color: #9AA4B2; line-height: 1.5">The same art is reused at every quality. The tile around it changes, so Q5 bread still looks special in a warehouse list.</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; background: #181D26; border: 1px solid #252C38">
+          <img src="/_blob/9ba11b52712b69cf4df8275e86c5a047" alt="Bread, quality 0" style="width: 96px; height: 96px">
+          <span class="mono" style="font-size: 13px; color: #9AA4B2">Q0 ☆☆☆☆☆</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; background: #1A1F28; border: 2px solid #C9D2DD">
+          <img src="/_blob/9ba11b52712b69cf4df8275e86c5a047" alt="Bread, quality 2" style="width: 96px; height: 96px">
+          <span class="mono" style="font-size: 13px">Q2 <span style="color: #F2B33D">★★</span>☆☆☆</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; background: radial-gradient(circle at 50% 35%, #3A2E14, #181D26 70%); border: 2px solid #F2B33D; box-shadow: 0 0 24px rgba(242, 179, 61, 0.35)">
+          <img src="/_blob/9ba11b52712b69cf4df8275e86c5a047" alt="Bread, quality 5" style="width: 96px; height: 96px">
+          <span class="mono" style="font-size: 13px; color: #F2B33D">Q5 ★★★★★</span>
+        </div>
+      </div>
+    </div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+      <h2 class="disp" style="margin: 0; font-size: 22px; font-weight: 600">Your brand goes on the product</h2>
+      <p style="margin: 0; font-size: 13px; color: #9AA4B2; line-height: 1.5">Products made in the designer carry a brand plate: logo and name under the art, with a numbered serial for limited runs. The dial and grille text stay generic so one drawing serves every brand.</p>
+      <div style="display: flex; gap: 16px; align-items: center; background: #181D26; border-radius: 14px; padding: 16px">
+        <img src="/_blob/eec79721aaac0b073a5ae02626df69dd" alt="Branded complication watch" style="width: 120px; height: 120px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #F2B33D; background: #2B2312; padding: 6px 10px; border-radius: 8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l2-9 6 5 6-5 2 9z M4 20h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>Northwind Atelier</span>
+          <strong class="disp" style="font-size: 20px; font-weight: 600">Luxury Watch · Rose Tourbillon</strong>
+          <span class="mono" style="font-size: 12px; color: #9AA4B2">Q3 · rose gold · automatic · sapphire · #0012 of 0250</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const b = (id) => '/_blob/' + id;
+    const gold = '#F2B33D', muted = '#9AA4B2';
+    const cars = [
+      ['Rung 1', 'Economy hatch', '2,500 CR', '3e73f2daed543f4c3d0ee393381c7faa'],
+      ['Product', 'SUV', '2,600 wholesale', 'eef055ddbb0680516f132f1a654ed40e'],
+      ['Rung 2', 'Sports coupé', '90,000 CR', '76335d656cd34150842e1f499180af28'],
+      ['Rung 3', 'Luxury sedan', '400,000 CR', '0391742ae47bb1d112fa72b5dd64fb5f'],
+      ['Rung 4', 'Supercar', '2.5M CR', '19b3048b626906deba879cccfb8ef346'],
+      ['Rung 5', 'Hypercar', '15M CR', 'f255ecd6b213c5ba8a5713e70194c7b9']
+    ].map(([tag, name, price, id], i) => ({ tag, name, price, img: b(id), tagColor: i >= 4 ? gold : muted, border: i === 5 ? '#5C4716' : '#252C38' }));
+    const watches = [
+      ['Rung 1', 'Steel quartz', 'Rubber strap, 3 hands', '1,500 CR', '5e49122cdf87c1df672ebf6baff03a5f'],
+      ['Rung 2', 'Automatic', 'Sunburst dial, date, bracelet', '12,000 CR', 'f3ec0297b11f7e02ab134f9af0d7d6de'],
+      ['Rung 3', 'Gold dress watch', 'Roman numerals, small seconds', '150,000 CR', '375e358d690aa77432510fa36ce9ea5f'],
+      ['Rung 4', 'Complication', 'Moon phase, open tourbillon', '1M CR', 'eec79721aaac0b073a5ae02626df69dd'],
+      ['Rung 5', 'Founders 1-of-100', 'Diamond bezel, numbered, never re-released', 'auction', 'dca5b873f785165bf60e61ce2dfebce6']
+    ].map(([tag, name, note, price, id], i) => ({ tag, name, note, price, img: b(id), tagColor: i >= 3 ? gold : muted, border: i === 4 ? '#5C4716' : '#252C38' }));
+    const luxe = [
+      ['Silver chain', '2,000 CR', '7fe2aeac89ef99cb0831418334243188'],
+      ['Designer bag', '25,000 CR', 'c3d0817b6cefc6f3f2996382ddc178c3'],
+      ['Diamond ring', '200,000 CR', '3a55ab412eada94b58fa978d404934e4'],
+      ['Named gem', '10M+ CR', '42c6236f559edc27c71614ea24b35de6'],
+      ['Streetwear', '300 CR', '29d3d7d715070861a4d9e7d3c0e4ddb0'],
+      ['Designer sneakers', '5,000 CR', '0363ee098e9920584c91f09bd37a61ff'],
+      ['Gala gown', '250,000 CR', 'bc17dd3184bb42122c48b5f0271c8171']
+    ].map(([name, price, id]) => ({ name, price, img: b(id) }));
+    const big = [
+      ['Superyacht', '150M CR', '56649608bba8dd39f4ec9a81fa99ac97'],
+      ['Private jet', '300M CR', 'd385cc3ace12248bd632c04de12380db'],
+      ['Smartphone', '230 wholesale', '6a2aa770eff8500fc578ecdc6f1fc78d'],
+      ['Laptop', '650 wholesale', '7e0ae8f68348bda6b7e91d6b6b9df654']
+    ].map(([name, price, id]) => ({ name, price, img: b(id) }));
+    const T = { T0: ['#2A2318', '#D2B48C'], T1: ['#13261A', '#8ED692'], T2: ['#0F1F33', '#8CC4FF'], T3: ['#211A33', '#C4B0FA'], T4: ['#2E1F12', '#F7B57A'] };
+    const goods = [
+      ['Wheat', 'T1', '4.50', '0c423d2422ca21ad2ec9917a6d290708'],
+      ['Flour', 'T2', '8.00', 'f52fad9bd482fd00c213cb8faba3ce30'],
+      ['Bread', 'T4', '27.00', '9ba11b52712b69cf4df8275e86c5a047'],
+      ['Cotton', 'T1', '5.50', '6b7af245782eaf3adee5a63e5fe6046e'],
+      ['Fabric', 'T2', '15.00', 'c8bd1c79f279dd5a034abd9461be9bf4'],
+      ['Iron ore', 'T0', '6.00', '243b029ad5ccec601dcf9e62db1c8b83'],
+      ['Coal', 'T0', '3.00', '02763763df43f628ced704d20fa22e5f'],
+      ['Steel', 'T2', '24.00', 'cdc4bacf1a94bad3041fd1e44543c8c3'],
+      ['Electricity', 'T2', '40 / MWh', '1d0c065c2d334345c5817e7d4906b40b'],
+      ['Chip', 'T3', '52.00', '38cedd34bf15b4f3c278e53937077350'],
+      ['Engine', 'T3', '520.00', 'fa5944f685ed397190db022ccb822513'],
+      ['Gold bar', 'T2', '950.00', 'a3379b8f1a69e21dad4d04e197eb266a']
+    ].map(([name, tier, price, id]) => ({ name, tier, price, img: b(id), chipBg: T[tier][0], chipFg: T[tier][1] }));
+    return { cars, watches, luxe, big, goods };
+  }
+}
+</script>
+</body>
+</html>

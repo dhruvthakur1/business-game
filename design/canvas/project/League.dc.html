@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Leagues and leaderboards</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="league" hint-size="100%,1000px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Leagues" subtitle="Week 43 · Small division · resets Sunday 00:00" hint-size="100%,72px"></dc-import>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+      <div style="flex: 2 1 420px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center">
+        <div style="width: 96px; height: 96px; border-radius: 24px; background: #2B2312; display: flex; align-items: center; justify-content: center">
+          <svg width="52" height="52" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3h8v4a4 4 0 01-8 0zM10 11v3M7 17h6M6 5H3.5a2.5 2.5 0 002.5 3M14 5h2.5a2.5 2.5 0 01-2.5 3" stroke="#F2B33D" stroke-width="1.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 700; color: #F2B33D; letter-spacing: 1px; text-transform: uppercase">Gold league · group 214</span>
+          <span class="disp" style="font-size: 30px; font-weight: 600">You're #6 · one spot inside promotion</span>
+          <span style="font-size: 14px; color: #9AA4B2"><span class="mono" style="color: #E8EAED">1,200 CR</span> of value-add behind Ferro Labs (#5). Saltmarsh Foods (#8) is <span class="mono" style="color: #E8EAED">2,900 CR</span> behind you.</span>
+        </div>
+      </div>
+      <div style="flex: 1 1 260px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 10px; justify-content: center">
+        <span style="font-size: 13px; color: #9AA4B2">Ends in</span>
+        <span class="mono" style="font-size: 34px; font-weight: 600">2d 14h 08m</span>
+        <span style="font-size: 13px; color: #9AA4B2">Top 7 promote to Platinum · bottom 5 drop to Silver</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px">
+      <div style="flex: 3 1 560px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+          <div role="tablist" aria-label="Board" style="display: flex; background: #0B0E13; border-radius: 10px; padding: 4px; gap: 4px">
+            <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+              <button role="tab" aria-selected="{{ t.on }}" onClick="{{ t.pick }}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: {{ t.bg }}; color: {{ t.fg }}; font: 600 13px Inter, sans-serif; cursor: pointer">{{ t.label }}</button>
+            </sc-for>
+          </div>
+          <span style="font-size: 13px; color: #9AA4B2">{{ caption }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: grid; grid-template-columns: 56px minmax(0, 1fr) 120px 110px; gap: 12px; padding: 8px 12px; font-size: 12px; color: #9AA4B2">
+            <span>Rank</span><span>Company</span><span style="text-align: right">{{ colA }}</span><span style="text-align: right">{{ colB }}</span>
+          </div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="12">
+            <sc-if value="{{ r.divider }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 6px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: {{ r.dColor }}"><span style="flex: 1; height: 1px; background: {{ r.dColor }}; opacity: 0.4"></span>{{ r.dLabel }}<span style="flex: 1; height: 1px; background: {{ r.dColor }}; opacity: 0.4"></span></div>
+            </sc-if>
+            <sc-if value="{{ r.row }}" hint-placeholder-val="{{ true }}">
+              <div style="display: grid; grid-template-columns: 56px minmax(0, 1fr) 120px 110px; gap: 12px; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; background: {{ r.bg }}; border: 1px solid {{ r.border }}">
+                <span class="mono" style="font-size: 14px; font-weight: 600; color: {{ r.rankColor }}">{{ r.rank }}</span>
+                <span style="font-size: 14px; display: flex; align-items: center; gap: 8px; min-width: 0"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ r.name }}</span><span style="font-size: 12px; color: #9AA4B2">{{ r.tag }}</span></span>
+                <span class="mono" style="font-size: 14px; text-align: right">{{ r.a }}</span>
+                <span class="mono" style="font-size: 13px; text-align: right; color: {{ r.bColor }}">{{ r.b }}</span>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">This week's contests</h2>
+          <a href="Contest.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none">Details &amp; rules →</a>
+        </div>
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: center"><strong style="font-size: 15px">Reliable Supplier Week</strong><span class="mono" style="font-size: 14px; color: #F2B33D">#3</span></div>
+          <span style="font-size: 13px; color: #9AA4B2">On-time contract value, 3+ unique buyers</span>
+          <div style="height: 6px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 83%; height: 100%; background: #F2B33D"></div></div>
+          <span style="font-size: 12px; color: #9AA4B2">Reward: verified-supplier badge glow</span>
+        </div>
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: center"><strong style="font-size: 15px">Margin Master</strong><span class="mono" style="font-size: 14px">#9</span></div>
+          <span style="font-size: 13px; color: #9AA4B2">Gross margin <span class="mono" style="color: #E8EAED">31.2%</span> on 20k+ revenue</span>
+          <div style="height: 6px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 62%; height: 100%; background: #5AA9FF"></div></div>
+          <span style="font-size: 12px; color: #9AA4B2">Reward: "Margin Master" title for 7 days</span>
+        </div>
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: center"><strong style="font-size: 15px">Harvest Sprint</strong><span class="mono" style="font-size: 14px">#14</span></div>
+          <span style="font-size: 13px; color: #9AA4B2">Agricultural units sold per building level</span>
+          <div style="height: 6px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 41%; height: 100%; background: #6CC070"></div></div>
+          <span style="font-size: 12px; color: #9AA4B2">Reward: Golden Sickle profile frame</span>
+        </div>
+        <div style="background: #151A22; border: 1px dashed #343C4A; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px">
+          <strong style="font-size: 15px">Community build: Harbor Stadium</strong>
+          <span style="font-size: 13px; color: #9AA4B2">Server-wide: 62% of 40,000 cement delivered. Everyone who delivers gets the checkpoint cosmetics.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { board: 'league' };
+  }
+  renderVals() {
+    const board = this.state.board;
+    const tabs = [['league', 'My league'], ['global', 'Empire value'], ['friends', 'Rivals']].map(([k, label]) => ({
+      label, on: k === board,
+      bg: k === board ? '#252C38' : 'transparent', fg: k === board ? '#E8EAED' : '#9AA4B2',
+      pick: () => this.setState({ board: k })
+    }));
+    const row = (rank, name, a, b, me, opts) => ({
+      row: true, divider: false, rank: '#' + rank, name, a, b, tag: me ? 'you' : '',
+      bg: me ? '#2B2312' : 'transparent', border: me ? '#5C4716' : 'transparent',
+      rankColor: (opts && opts.rc) || '#E8EAED', bColor: (opts && opts.bc) || '#9AA4B2'
+    });
+    const div = (label, color) => ({ row: false, divider: true, dLabel: label, dColor: color });
+    let rows, caption, colA, colB;
+    if (board === 'league') {
+      colA = 'Value-add CR'; colB = 'Points';
+      caption = 'Points = 1000 × your value-add ÷ last week’s P90, capped at 1,500';
+      const up = { rc: '#3FBF7F' }, dn = { rc: '#F0605A' };
+      rows = [
+        row(1, 'Atlas Autoworks', '57,900', '1,412', false, up),
+        row(2, 'Copperline Ltd', '56,600', '1,380', false, up),
+        row(3, 'Harbor Bakeries', '53,400', '1,301', false, up),
+        row(4, 'Tundra Extraction', '52,000', '1,268', false, up),
+        row(5, 'Ferro Labs', '49,500', '1,207', false, up),
+        row(6, 'Northwind Holdings', '48,300', '1,178', true, up),
+        row(7, 'Saltmarsh Foods', '45,400', '1,107', false, up),
+        div('Promotion line', '#3FBF7F'),
+        row(8, 'Kestrel Power', '43,000', '1,049'),
+        row(9, 'Bluegate Textiles', '41,800', '1,019'),
+        div('17 more · safe zone', '#6B7585'),
+        div('Relegation line', '#F0605A'),
+        row(26, 'Marrow & Sons', '12,100', '295', false, dn),
+        row(27, 'Quarry Nine', '9,400', '229', false, dn),
+        row(28, 'Pinecrest Paper', '7,700', '188', false, dn)
+      ];
+    } else if (board === 'global') {
+      colA = 'Net worth'; colB = 'Gap';
+      caption = 'Global · 24h-average conservative net worth';
+      rows = [
+        row(479, 'Sable Logistics', '1,846,900', '+5,500'),
+        row(480, 'Orchid Cosmetics', '1,844,300', '+2,900'),
+        row(481, 'Ironvale Group', '1,842,600', '+1,200', false, { bc: '#F2B33D' }),
+        row(482, 'Northwind Holdings', '1,841,400', '—', true),
+        row(483, 'Lumen Glassworks', '1,839,000', '−2,400'),
+        row(484, 'Granite Bay Co', '1,833,700', '−7,700'),
+        row(485, 'Westwind Software', '1,829,100', '−12,300')
+      ];
+    } else {
+      colA = '7-day profit'; colB = 'vs you';
+      caption = 'Companies you follow · max 50';
+      rows = [
+        row(1, 'Ferro Labs', '52,100', '+3,180', false, { bc: '#F0605A' }),
+        row(2, 'Northwind Holdings', '48,920', '—', true),
+        row(3, 'Saltmarsh Foods', '44,060', '−4,860', false, { bc: '#3FBF7F' }),
+        row(4, 'Harbor Bakeries', '39,700', '−9,220', false, { bc: '#3FBF7F' })
+      ];
+    }
+    return { tabs, rows, caption, colA, colB };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bank</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="bank" hint-size="100%,1000px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Bank" subtitle="Rates are quoted per day, because your buildings earn per day" hint-size="100%,72px"></dc-import>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px">
+      <div style="flex: 1 1 320px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Credit score</h2>
+        <div style="position: relative; display: flex; justify-content: center">
+          <svg viewBox="0 0 240 132" role="img" aria-label="Credit score 742 of 900" style="width: 100%; max-width: 280px; display: block">
+            <path d="M20 120 A100 100 0 0 1 220 120" stroke="#252C38" stroke-width="16" fill="none" stroke-linecap="round"/>
+            <path d="M20 120 A100 100 0 0 1 187.8 46.5" stroke="#F2B33D" stroke-width="16" fill="none" stroke-linecap="round"/>
+            <text x="120" y="104" text-anchor="middle" fill="#E8EAED" font-family="JetBrains Mono, monospace" font-size="38" font-weight="600">742</text>
+            <text x="120" y="126" text-anchor="middle" fill="#9AA4B2" font-family="Inter, sans-serif" font-size="12">tier 740–799</text>
+          </svg>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <sc-for list="{{ factors }}" as="f" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; justify-content: space-between; font-size: 13px"><span>{{ f.name }} <span style="color: #9AA4B2">· {{ f.w }}</span></span><span class="mono" style="color: #9AA4B2">{{ f.v }}</span></div>
+              <div style="height: 6px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: {{ f.pct }}; height: 100%; background: #5AA9FF"></div></div>
+            </div>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; color: #9AA4B2; line-height: 1.5"><strong style="color: #E8EAED">Next tier at 800:</strong> 0.10%/day and 65% LTV. Your fastest lever is company age (unlocks fully at day 90).</span>
+      </div>
+
+      <div style="flex: 2 1 520px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Term loan</h2>
+          <span style="font-size: 13px; color: #9AA4B2">Max <span class="mono" style="color: #E8EAED">69,880</span> · 10 × 7-day avg daily op profit</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; color: #9AA4B2">Amount</span>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <button aria-label="Decrease amount by 5,000" onClick="{{ dec }}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font: 600 18px Inter, sans-serif; cursor: pointer">−</button>
+            <span class="mono" style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; font-size: 18px; font-weight: 600">{{ principal }} CR</span>
+            <button aria-label="Increase amount by 5,000" onClick="{{ inc }}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font: 600 18px Inter, sans-serif; cursor: pointer">+</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; color: #9AA4B2">Term</span>
+          <div role="radiogroup" aria-label="Term" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{ terms }}" as="t" hint-placeholder-count="4">
+              <button role="radio" aria-checked="{{ t.on }}" onClick="{{ t.pick }}" style="height: 44px; border-radius: 10px; border: 1.5px solid {{ t.border }}; background: {{ t.bg }}; color: #E8EAED; font: 600 14px Inter, sans-serif; cursor: pointer">{{ t.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+          <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Daily rate</span><span class="mono" style="font-size: 22px; font-weight: 600">0.15%</span><span style="font-size: 12px; color: #9AA4B2">≈ 55% simple annual</span></div>
+          <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Daily installment</span><span class="mono" style="font-size: 22px; font-weight: 600; color: #F2B33D">{{ emi }}</span><span style="font-size: 12px; color: #9AA4B2">auto-debit 00:00, before upkeep</span></div>
+          <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Total interest</span><span class="mono" style="font-size: 22px; font-weight: 600">{{ interest }}</span><span style="font-size: 12px; color: #9AA4B2">repay {{ total }}</span></div>
+          <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Debt cover after loan</span><span class="mono" style="font-size: 22px; font-weight: 600; color: {{ dscrColor }}">{{ dscr }}×</span><span style="font-size: 12px; color: #9AA4B2">bank needs ≥ 1.35×</span></div>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
+          <button onClick="{{ take }}" style="height: 48px; padding: 0 22px; border: 0; border-radius: 10px; background: #F2B33D; color: #1A1405; font: 700 15px Inter, sans-serif; cursor: pointer">{{ takeLabel }}</button>
+          <span style="font-size: 13px; color: #9AA4B2; max-width: 420px; line-height: 1.5">Your mill pays back <span class="mono">≈3%/day</span> on its cost; this loan costs <span class="mono">0.15%/day</span>. Borrowing to build is usually worth it.</span>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><strong style="font-size: 15px">Building mortgage</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Up to 60% of a building's resale value, 30–90 days, 0.03%/day cheaper. The bank holds a lien.</span><span class="mono" style="font-size: 12px; color: #3FBF7F">Unlocked · Lv 8</span></div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><strong style="font-size: 15px">Line of credit</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">30% of 7-day revenue, revolving. Interest only on what you draw.</span><span class="mono" style="font-size: 12px; color: #3FBF7F">Unlocked · Lv 12</span></div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><strong style="font-size: 15px">Overdraft</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Automatic up to 5,000 so upkeep never fails. 0.5%/day + 50 CR fee.</span><span class="mono" style="font-size: 12px; color: #9AA4B2">Standby</span></div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 6px"><strong style="font-size: 15px">Savings</strong><span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">0.02%/day on balances up to 500k. A safe place for cash, not an income stream.</span><span class="mono" style="font-size: 12px; color: #9AA4B2">42,000 deposited</span></div>
+    </section>
+
+    <section style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">If a payment is missed</h2>
+      <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px">
+        <li style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-top: 3px solid #5AA9FF"><span class="mono" style="font-size: 12px; color: #9AA4B2">0–24h</span><strong style="font-size: 14px">Grace</strong><span style="font-size: 12px; color: #9AA4B2">Reminder only</span></li>
+        <li style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-top: 3px solid #F2B33D"><span class="mono" style="font-size: 12px; color: #9AA4B2">day 1–3</span><strong style="font-size: 14px">Late</strong><span style="font-size: 12px; color: #9AA4B2">2% fee, +0.10%/day, −15 score</span></li>
+        <li style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-top: 3px solid #F2994A"><span class="mono" style="font-size: 12px; color: #9AA4B2">day 3</span><strong style="font-size: 14px">Restructure offer</strong><span style="font-size: 12px; color: #9AA4B2">Term up to 2×, no new loans 14d</span></li>
+        <li style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-top: 3px solid #F0605A"><span class="mono" style="font-size: 12px; color: #9AA4B2">day 7</span><strong style="font-size: 14px">Collections</strong><span style="font-size: 12px; color: #9AA4B2">Bank sweeps 50% of revenue</span></li>
+        <li style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-top: 3px solid #C4CBD5"><span class="mono" style="font-size: 12px; color: #9AA4B2">day 14</span><strong style="font-size: 14px">Receivership</strong><span style="font-size: 12px; color: #9AA4B2">Idle assets auctioned. First building, level and wallet protected.</span></li>
+      </ol>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { p: 50000, n: 30, taken: false };
+  }
+  renderVals() {
+    const { p, n } = this.state;
+    const r = 0.0015;
+    const emi = p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    const total = emi * n;
+    const fmt = (x, d) => x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+    const opPerDay = 6988;
+    const dscr = (opPerDay / (emi + 420)).toFixed(2);
+    const terms = [14, 30, 45, 60].map(t => ({
+      label: t + ' days', on: t === n,
+      border: t === n ? '#F2B33D' : '#343C4A',
+      bg: t === n ? '#2B2312' : '#181D26',
+      pick: () => this.setState({ n: t, taken: false })
+    }));
+    const factors = [
+      { name: 'On-time repayments', w: '30%', v: '0.96', pct: '96%' },
+      { name: 'Low debt use', w: '20%', v: '0.55', pct: '55%' },
+      { name: 'Company age', w: '15%', v: '47 / 90 d', pct: '52%' },
+      { name: 'Debt cover (DSCR)', w: '20%', v: '1.70×', pct: '85%' },
+      { name: 'Profit stability', w: '15%', v: '0.60', pct: '60%' }
+    ];
+    return {
+      factors, terms,
+      principal: fmt(p, 0),
+      inc: () => this.setState({ p: Math.min(69880, p + 5000), taken: false }),
+      dec: () => this.setState({ p: Math.max(5000, p - 5000), taken: false }),
+      emi: fmt(emi, 2), interest: fmt(total - p, 2), total: fmt(total, 2),
+      dscr, dscrColor: Number(dscr) >= 1.35 ? '#3FBF7F' : '#F0605A',
+      take: () => this.setState({ taken: true }),
+      takeLabel: this.state.taken ? 'Funds deposited' : 'Take loan'
+    };
+  }
+}
+</script>
+</body>
+</html>

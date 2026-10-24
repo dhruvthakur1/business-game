@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Showroom</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="showroom" hint-size="100%,1000px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Showroom" subtitle="Your personal wealth, kept apart from the company" hint-size="100%,72px"></dc-import>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Personal wallet</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600; color: #F2B33D">61,200</span>
+        <span style="font-size: 12px; color: #9AA4B2">Separate from company cash · protected in receivership</span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Prestige score</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">412</span>
+        <span style="font-size: 12px; color: #9AA4B2">Log-scaled, so a curated set beats one huge buy</span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Daily upkeep on items</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">0.50</span>
+        <span style="font-size: 12px; color: #9AA4B2">Unpaid upkeep stores an item, never seizes it</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px">
+      <div style="flex: 3 1 560px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+        <div role="tablist" aria-label="Collection" style="display: flex; flex-wrap: wrap; background: #0B0E13; border-radius: 10px; padding: 4px; gap: 4px; align-self: flex-start">
+          <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+            <button role="tab" aria-selected="{{ t.on }}" onClick="{{ t.pick }}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: {{ t.bg }}; color: {{ t.fg }}; font: 600 14px Inter, sans-serif; cursor: pointer">{{ t.label }}</button>
+          </sc-for>
+        </div>
+
+        <div style="background: #181D26; border-radius: 14px; padding: 18px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+          <sc-if value="{{ next.hasImg }}" hint-placeholder-val="{{ true }}">
+            <div style="width: 220px; height: 160px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 45%, #3A2E14, #11151B 70%); border-radius: 12px"><img src="{{ next.img }}" alt="" style="width: 200px; height: 150px; object-fit: contain"></div>
+          </sc-if>
+          <div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px">
+            <span style="font-size: 13px; color: #9AA4B2">Next rung</span>
+            <span class="mono" style="font-size: 13px; color: #9AA4B2">{{ next.pct }}</span>
+          </div>
+          <span class="disp" style="font-size: 26px; font-weight: 600">{{ next.name }}</span>
+          <div style="height: 12px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: {{ next.pct }}; height: 100%; background: #F2B33D; border-radius: 999px"></div></div>
+          <span style="font-size: 14px; color: #9AA4B2">{{ next.note }}</span>
+          </div>
+        </div>
+
+        <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+          <sc-for list="{{ rungs }}" as="r" hint-placeholder-count="5">
+            <li style="border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; background: {{ r.bg }}; border: 1.5px solid {{ r.border }}; opacity: {{ r.op }}">
+              <div style="height: 96px; display: flex; align-items: center; justify-content: center; background: #11151B; border-radius: 10px">
+                <sc-if value="{{ r.hasImg }}" hint-placeholder-val="{{ true }}"><img src="{{ r.img }}" alt="" style="width: 100%; height: 90px; object-fit: contain"></sc-if>
+              </div>
+              <span class="mono" style="font-size: 11px; color: #9AA4B2">RUNG {{ r.n }}</span>
+              <strong style="font-size: 15px; line-height: 1.3; min-height: 40px">{{ r.name }}</strong>
+              <span class="mono" style="font-size: 14px">{{ r.price }}</span>
+              <span style="font-size: 12px; font-weight: 700; color: {{ r.stateColor }}">{{ r.state }}</span>
+            </li>
+          </sc-for>
+        </ol>
+        <span style="font-size: 12px; color: #9AA4B2">{{ rule }}</span>
+      </div>
+
+      <div style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Pay yourself</h2>
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+            <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2">Daily salary</span><span class="mono">1,048 / day <span style="color: #9AA4B2; font-size: 12px">(max)</span></span></div>
+            <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2">Dividend available</span><span class="mono">22,400</span></div>
+            <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2">30-day inflows</span><span class="mono">38,900</span></div>
+            <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2">Tax band</span><span class="mono" style="color: #3FBF7F">0% until 50,000</span></div>
+          </div>
+          <div style="height: 8px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 78%; height: 100%; background: #5AA9FF"></div></div>
+          <span style="font-size: 12px; color: #9AA4B2">11,100 CR more this month before the 10% band starts. Owner withdrawals add a 10% early-withdrawal tax.</span>
+          <button style="height: 44px; border: 1px solid #343C4A; border-radius: 10px; background: #181D26; color: #E8EAED; font: 600 14px Inter, sans-serif; cursor: pointer">Declare 22,400 dividend</button>
+        </div>
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Trophy cabinet</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px">
+            <span style="font-size: 13px; padding: 8px 12px; border-radius: 10px; background: #2A1F17; color: #E0A47A">Bronze → Silver · W38</span>
+            <span style="font-size: 13px; padding: 8px 12px; border-radius: 10px; background: #1F242C; color: #C9D2DD">Silver → Gold · W41</span>
+            <span style="font-size: 13px; padding: 8px 12px; border-radius: 10px; background: #13261A; color: #8ED692">Newcomer Cup #2</span>
+          </div>
+          <span style="font-size: 12px; color: #9AA4B2">Trophies can't be sold or traded.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cat: 'garage' };
+  }
+  renderVals() {
+    const wallet = 61200, draw = 7200;
+    const cats = {
+      garage: { label: 'Garage', owned: 1, rule: 'Cars: upkeep 0.02% of price per day · NPC buys back at 70% · numbered classics trade between players only',
+        rungs: [['Economy hatch', 2500, '3e73f2daed543f4c3d0ee393381c7faa'], ['Sports coupé', 90000, '76335d656cd34150842e1f499180af28'], ['Luxury sedan', 400000, '0391742ae47bb1d112fa72b5dd64fb5f'], ['Supercar', 2500000, '19b3048b626906deba879cccfb8ef346'], ['Hypercar', 15000000, 'f255ecd6b213c5ba8a5713e70194c7b9']] },
+      vault: { label: 'Vault', owned: 1, rule: 'Watches: no upkeep · NPC buys back at 70% · Founders editions are 1-of-100 and never re-released',
+        rungs: [['Steel quartz', 1500, '5e49122cdf87c1df672ebf6baff03a5f'], ['Automatic', 12000, 'f3ec0297b11f7e02ab134f9af0d7d6de'], ['Gold dress watch', 150000, '375e358d690aa77432510fa36ce9ea5f'], ['Complication', 1000000, 'eec79721aaac0b073a5ae02626df69dd'], ['Founders 1-of-100', null, 'dca5b873f785165bf60e61ce2dfebce6']] },
+      wardrobe: { label: 'Wardrobe', owned: 2, rule: 'Clothing: no upkeep · NPC buys back at 50% · worn on your avatar and profile',
+        rungs: [['Streetwear', 300, '29d3d7d715070861a4d9e7d3c0e4ddb0'], ['Designer sneakers', 5000, '0363ee098e9920584c91f09bd37a61ff'], ['Designer bag', 25000, 'c3d0817b6cefc6f3f2996382ddc178c3'], ['Gala gown', 250000, 'bc17dd3184bb42122c48b5f0271c8171'], ['Numbered collab drop', null, '0363ee098e9920584c91f09bd37a61ff']] },
+      homes: { label: 'Homes & toys', owned: 1, rule: 'Homes: upkeep 0.03%/day, NPC buyback 75% · Yachts and jets: upkeep 0.08%/day, buyback 70% · renting is the cheap way up',
+        rungs: [['Studio (rent 200/day)', 0], ['Apartment', 500000], ['Villa', 5000000], ['Superyacht', 150000000, '56649608bba8dd39f4ec9a81fa99ac97'], ['Private jet', 300000000, 'd385cc3ace12248bd632c04de12380db']] }
+    };
+    const cat = cats[this.state.cat];
+    const tabs = Object.keys(cats).map(k => ({
+      label: cats[k].label, on: k === this.state.cat,
+      bg: k === this.state.cat ? '#252C38' : 'transparent', fg: k === this.state.cat ? '#E8EAED' : '#9AA4B2',
+      pick: () => this.setState({ cat: k })
+    }));
+    const fmt = (n) => n.toLocaleString('en-US');
+    const rungs = cat.rungs.map(([name, price, art], i) => {
+      const owned = i < cat.owned, isNext = i === cat.owned;
+      const canBuy = isNext && price !== null && wallet >= price;
+      return {
+        n: i + 1, name, hasImg: !!art, img: art ? '/_blob/' + art : '',
+        price: price === null ? 'auction' : (price === 0 ? 'renting' : fmt(price) + ' CR'),
+        state: owned ? 'Owned' : (isNext ? (canBuy ? 'Affordable now' : 'Next goal') : 'Locked'),
+        stateColor: owned ? '#3FBF7F' : (isNext ? '#F2B33D' : '#9AA4B2'),
+        bg: isNext ? '#2B2312' : '#181D26', border: isNext ? '#5C4716' : 'transparent',
+        op: owned || isNext ? 1 : 0.6
+      };
+    });
+    const nx = cat.rungs[cat.owned];
+    const price = nx[1];
+    const pct = Math.min(100, Math.round(wallet / price * 100));
+    const gap = price - wallet;
+    const note = gap <= 0
+      ? 'You can buy this today. Buying from a player Luxury Store is usually cheaper than the NPC shop.'
+      : fmt(gap) + ' CR more · about ' + Math.ceil(gap / draw) + ' days at your current draw';
+    return { tabs, rungs, rule: cat.rule, next: { name: nx[0] + ' · ' + fmt(price) + ' CR', pct: pct + '%', note, hasImg: !!nx[2], img: nx[2] ? '/_blob/' + nx[2] : '' } };
+  }
+}
+</script>
+</body>
+</html>

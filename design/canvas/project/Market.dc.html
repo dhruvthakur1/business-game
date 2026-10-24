@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exchange</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="market" hint-size="100%,1000px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Exchange" subtitle="Order book · 2% seller fee · price bounds 0.5×–2× reference" hint-size="100%,72px"></dc-import>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <div style="flex: 1 1 240px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #9AA4B2">Search products
+          <input placeholder="e.g. steel, Q2+" style="height: 44px; box-sizing: border-box; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; color: #E8EAED; padding: 0 14px; font: 500 14px Inter, sans-serif">
+        </label>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #9AA4B2; padding-top: 4px">Watchlist</span>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <sc-for list="{{ products }}" as="p" hint-placeholder-count="7">
+            <button onClick="{{ p.pick }}" aria-pressed="{{ p.on }}" style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 10px; border: 0; border-radius: 10px; background: {{ p.bg }}; color: #E8EAED; cursor: pointer; text-align: left; font-family: Inter, sans-serif">
+              <span style="width: 10px; height: 10px; border-radius: 3px; background: {{ p.tier }}"></span>
+              <span style="flex: 1; font-size: 14px; font-weight: 500">{{ p.name }}</span>
+              <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+                <span class="mono" style="font-size: 13px">{{ p.price }}</span>
+                <span class="mono" style="font-size: 11px; color: {{ p.chgColor }}">{{ p.chg }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="flex: 3 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 13px; color: #9AA4B2">{{ sel.name }} · T2 Processed · per unit</span>
+              <div style="display: flex; align-items: baseline; gap: 12px">
+                <span class="mono" style="font-size: 36px; font-weight: 600">{{ sel.price }}</span>
+                <span class="mono" style="font-size: 14px; color: {{ sel.chgColor }}">{{ sel.chg }} · 24h</span>
+              </div>
+            </div>
+            <div class="mono" style="display: flex; gap: 20px; font-size: 12px; color: #9AA4B2">
+              <span style="display: flex; flex-direction: column; gap: 2px">Reference (7d VWAP)<strong style="color: #E8EAED; font-size: 14px">{{ sel.ref }}</strong></span>
+              <span style="display: flex; flex-direction: column; gap: 2px">24h volume<strong style="color: #E8EAED; font-size: 14px">{{ sel.vol }}</strong></span>
+            </div>
+          </div>
+          <svg viewBox="0 0 600 200" preserveAspectRatio="none" role="img" aria-label="Seven-day price trending up about 4 percent" style="width: 100%; height: 200px; display: block">
+            <path d="M0 50 H600 M0 100 H600 M0 150 H600" stroke="#1E242E" stroke-width="1"/>
+            <path d="M0 140 L50 132 L100 138 L150 120 L200 126 L250 110 L300 114 L350 96 L400 102 L450 84 L500 90 L550 72 L600 64 L600 200 L0 200 Z" fill="#5AA9FF" opacity="0.12"/>
+            <path d="M0 140 L50 132 L100 138 L150 120 L200 126 L250 110 L300 114 L350 96 L400 102 L450 84 L500 90 L550 72 L600 64" stroke="#5AA9FF" stroke-width="2.5" fill="none" vector-effect="non-scaling-stroke"/>
+            <path d="M0 108 H600" stroke="#F2B33D" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <div class="mono" style="display: flex; justify-content: space-between; font-size: 11px; color: #9AA4B2"><span>D41</span><span>D43</span><span>D45</span><span>D47</span><span style="color: #F2B33D">- - reference</span></div>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Order book</h2>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA4B2; padding: 0 8px"><span>Bid qty · Q</span><span>Price</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to left, #12291E 80%, transparent 80%)"><span>2,400 · Q1</span><span style="color: #3FBF7F">8.32</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to left, #12291E 55%, transparent 55%)"><span>1,600 · Q0</span><span style="color: #3FBF7F">8.30</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to left, #12291E 40%, transparent 40%)"><span>1,200 · Q2</span><span style="color: #3FBF7F">8.28</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to left, #12291E 25%, transparent 25%)"><span>800 · Q0</span><span style="color: #3FBF7F">8.25</span></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA4B2; padding: 0 8px"><span>Price</span><span>Ask qty · Q</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to right, #2A1515 35%, transparent 35%)"><span style="color: #F0605A">8.36</span><span>900 · Q1</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to right, #2A1515 60%, transparent 60%)"><span style="color: #F0605A">8.38</span><span>1,800 · Q2</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to right, #2A1515 45%, transparent 45%)"><span style="color: #F0605A">8.40</span><span>1,300 · Q1</span></div>
+              <div class="mono" style="display: flex; justify-content: space-between; font-size: 13px; padding: 8px; border-radius: 6px; background: linear-gradient(to right, #2A1515 90%, transparent 90%)"><span style="color: #F0605A">8.45</span><span>3,000 · Q0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 300px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <div role="tablist" aria-label="Side" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #0B0E13; border-radius: 10px; padding: 4px; gap: 4px">
+          <button role="tab" aria-selected="{{ isBuy }}" onClick="{{ setBuy }}" style="height: 40px; border: 0; border-radius: 8px; background: {{ buyBg }}; color: {{ buyFg }}; font: 700 14px Inter, sans-serif; cursor: pointer">Buy</button>
+          <button role="tab" aria-selected="{{ isSell }}" onClick="{{ setSell }}" style="height: 40px; border: 0; border-radius: 8px; background: {{ sellBg }}; color: {{ sellFg }}; font: 700 14px Inter, sans-serif; cursor: pointer">Sell</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 13px; color: #9AA4B2">Quantity</span>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <button aria-label="Decrease quantity by 100" onClick="{{ dec }}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font: 600 18px Inter, sans-serif; cursor: pointer">−</button>
+            <span class="mono" style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; font-size: 16px">{{ qty }}</span>
+            <button aria-label="Increase quantity by 100" onClick="{{ inc }}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font: 600 18px Inter, sans-serif; cursor: pointer">+</button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 13px; color: #9AA4B2">Limit price · min quality</span>
+          <div style="display: flex; gap: 8px">
+            <span class="mono" style="flex: 1; height: 44px; display: flex; align-items: center; padding: 0 14px; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; font-size: 15px">{{ limit }}</span>
+            <span class="mono" style="width: 72px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; font-size: 15px">Q1+</span>
+          </div>
+          <span style="font-size: 12px; color: #9AA4B2">Allowed range 4.17 – 16.68 (0.5×–2× reference)</span>
+        </div>
+        <div class="mono" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; border-top: 1px solid #252C38; padding-top: 14px">
+          <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2; font-family: Inter, sans-serif">Subtotal</span><span>{{ subtotal }}</span></div>
+          <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2; font-family: Inter, sans-serif">{{ feeLabel }}</span><span>{{ fee }}</span></div>
+          <div style="display: flex; justify-content: space-between"><span style="color: #9AA4B2; font-family: Inter, sans-serif">Freight (intra-region)</span><span>{{ freight }}</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: 600"><span style="font-family: Inter, sans-serif">{{ totalLabel }}</span><span style="color: #F2B33D">{{ total }}</span></div>
+        </div>
+        <button onClick="{{ place }}" style="height: 52px; border: 0; border-radius: 10px; background: {{ ctaBg }}; color: #0B0E13; font: 700 15px Inter, sans-serif; cursor: pointer">{{ ctaLabel }}</button>
+        <span style="font-size: 12px; color: #9AA4B2; line-height: 1.5">Tip: a recurring contract with a supplier costs 1% instead of 2% and halves freight. <a href="Contracts.dc.html">Find suppliers</a></span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 'flour', side: 'buy', qty: 1200, placed: false };
+  }
+  renderVals() {
+    const data = [
+      { id: 'wheat', name: 'Wheat', tier: '#6CC070', p: 4.62, c: 1.8, ref: 4.55, vol: '412k' },
+      { id: 'flour', name: 'Flour', tier: '#5AA9FF', p: 8.34, c: 4.2, ref: 8.12, vol: '188k' },
+      { id: 'bread', name: 'Bread', tier: '#F2994A', p: 27.4, c: -0.9, ref: 27.1, vol: '61k' },
+      { id: 'steel', name: 'Steel', tier: '#5AA9FF', p: 24.8, c: 2.6, ref: 24.2, vol: '93k' },
+      { id: 'mwh', name: 'Electricity (MWh)', tier: '#5AA9FF', p: 41.2, c: -1.4, ref: 40.6, vol: '24k' },
+      { id: 'chip', name: 'Chip', tier: '#A98BF5', p: 53.1, c: 0.6, ref: 52.4, vol: '11k' },
+      { id: 'watch', name: 'Luxury watch', tier: '#F2B33D', p: 912, c: -2.2, ref: 905, vol: '340' }
+    ];
+    const fmt2 = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const chgTxt = (c) => (c >= 0 ? '▲ +' : '▼ ') + c.toFixed(1) + '%';
+    const products = data.map(d => ({
+      name: d.name, tier: d.tier, price: fmt2(d.p), chg: chgTxt(d.c),
+      chgColor: d.c >= 0 ? '#3FBF7F' : '#F0605A',
+      on: d.id === this.state.sel,
+      bg: d.id === this.state.sel ? '#1E2530' : 'transparent',
+      pick: () => this.setState({ sel: d.id, placed: false })
+    }));
+    const s = data.find(d => d.id === this.state.sel);
+    const isBuy = this.state.side === 'buy';
+    const qty = this.state.qty;
+    const limit = isBuy ? s.p * 1.002 : s.p * 0.998;
+    const sub = qty * limit;
+    const fee = isBuy ? 0 : sub * 0.02;
+    const freight = qty * 1 * 0.25 * 0.02;
+    const total = isBuy ? sub + freight : sub - fee - freight;
+    return {
+      products,
+      sel: { name: s.name, price: fmt2(s.p), chg: chgTxt(s.c), chgColor: s.c >= 0 ? '#3FBF7F' : '#F0605A', ref: fmt2(s.ref), vol: s.vol },
+      isBuy, isSell: !isBuy,
+      buyBg: isBuy ? '#3FBF7F' : 'transparent', buyFg: isBuy ? '#0B0E13' : '#C4CBD5',
+      sellBg: isBuy ? 'transparent' : '#F0605A', sellFg: isBuy ? '#C4CBD5' : '#0B0E13',
+      setBuy: () => this.setState({ side: 'buy', placed: false }),
+      setSell: () => this.setState({ side: 'sell', placed: false }),
+      qty: qty.toLocaleString('en-US'),
+      inc: () => this.setState({ qty: qty + 100, placed: false }),
+      dec: () => this.setState({ qty: Math.max(100, qty - 100), placed: false }),
+      limit: fmt2(limit),
+      subtotal: fmt2(sub),
+      feeLabel: isBuy ? 'Seller fee (paid by seller)' : 'Seller fee 2%',
+      fee: isBuy ? '0.00' : '−' + fmt2(fee),
+      freight: '−' + fmt2(freight),
+      totalLabel: isBuy ? 'You pay' : 'You receive',
+      total: fmt2(total) + ' CR',
+      ctaBg: isBuy ? '#3FBF7F' : '#F0605A',
+      ctaLabel: this.state.placed ? 'Order placed · matching…' : (isBuy ? 'Place buy order' : 'Place sell order'),
+      place: () => this.setState({ placed: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

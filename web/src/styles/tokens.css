@@ -1,0 +1,66 @@
+/* Mercantile design tokens. Mirrors design/canvas/project/Main.dc.html. */
+:root {
+  /* Ink neutrals */
+  --ground: #0b0e13;
+  --panel: #12161d;
+  --raised: #181d26;
+  --sunken: #0f1319;
+  --nav: #0e1218;
+  --line: #252c38;
+  --line-strong: #343c4a;
+  --line-soft: #1e242e;
+  --muted: #9aa4b2;
+  --faint: #6b7585;
+  --text-soft: #c4cbd5;
+  --text: #e8eaed;
+
+  /* Semantic */
+  --gold: #f2b33d;
+  --gold-bright: #ffd27a;
+  --gold-ink: #1a1405;
+  --gold-wash: #2b2312;
+  --gold-edge: #5c4716;
+  --gain: #3fbf7f;
+  --gain-soft: #6fd3a6;
+  --gain-wash: #12291e;
+  --loss: #f0605a;
+  --loss-wash: #2a1515;
+  --info: #5aa9ff;
+  --info-soft: #8cc4ff;
+  --info-wash: #0f1f33;
+
+  /* Product tiers: [wash, text] */
+  --t0: #a68a64; --t0-bg: #2a2318; --t0-fg: #d2b48c;
+  --t1: #6cc070; --t1-bg: #13261a; --t1-fg: #8ed692;
+  --t2: #5aa9ff; --t2-bg: #0f1f33; --t2-fg: #8cc4ff;
+  --t3: #a98bf5; --t3-bg: #211a33; --t3-fg: #c4b0fa;
+  --t4: #f2994a; --t4-bg: #2e1f12; --t4-fg: #f7b57a;
+  --t5: #3dc7c0; --t5-bg: #0f2a28; --t5-fg: #7fd8d2;
+  --t6: #9aa9bc; --t6-bg: #1f242c; --t6-fg: #c9d2dd;
+  --t7: #f2b33d; --t7-bg: #2b2312; --t7-fg: #f2b33d;
+
+  /* Leagues */
+  --bronze-bg: #2a1f17; --bronze-fg: #e0a47a;
+  --silver-bg: #1f242c; --silver-fg: #c9d2dd;
+  --goldl-bg: #2b2312; --goldl-fg: #f2b33d;
+  --platinum-bg: #13282a; --platinum-fg: #7fd1d8;
+  --diamond-bg: #18213a; --diamond-fg: #8fb6ff;
+  --master-bg: #241a35; --master-fg: #c59bff;
+  --tycoon-bg: #33201a; --tycoon-fg: #ff8a65;
+
+  /* Type */
+  --font-display: 'Space Grotesk', Inter, system-ui, sans-serif;
+  --font-ui: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Space (4-pt grid) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+
+  /* Radius */
+  --r-chip: 6px; --r-control: 10px; --r-card: 16px; --r-pill: 999px;
+
+  /* Motion */
+  --t-fast: 120ms; --t-base: 200ms; --t-count: 400ms;
+
+  --touch: 44px;
+}

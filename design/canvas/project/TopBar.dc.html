@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Top bar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>body{margin:0}</style>
+</helmet>
+<header style="box-sizing: border-box; width: 100%; min-height: 72px; padding: 12px 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; font-family: Inter, system-ui, sans-serif; color: #E8EAED; border-bottom: 1px solid #1E242E">
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <h1 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 26px; font-weight: 600; letter-spacing: -0.4px">{{ title }}</h1>
+    <span style="font-size: 13px; color: #9AA4B2">{{ subtitle }}</span>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA4B2; padding: 0 6px">Day 47 · 14:20</span>
+    <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; background: #151A22; border: 1px solid #252C38">
+      <span style="font-size: 12px; color: #9AA4B2">Cash</span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; color: #F2B33D">248,310 CR</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; background: #151A22; border: 1px solid #252C38">
+      <span style="font-size: 12px; color: #9AA4B2">Net worth</span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600">1.84M</span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #3FBF7F">▲ 3.1%</span>
+    </div>
+    <button aria-label="Notifications, 4 unread" style="position: relative; width: 44px; height: 44px; border-radius: 10px; border: 1px solid #252C38; background: #151A22; color: #E8EAED; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 14V9a5 5 0 0110 0v5l1.5 2h-13zM8 18h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <span style="position: absolute; top: 8px; right: 9px; width: 8px; height: 8px; border-radius: 999px; background: #F0605A"></span>
+    </button>
+    <button aria-label="Account menu" style="width: 44px; height: 44px; border-radius: 999px; border: 0; background: #2B2312; color: #F2B33D; font: 700 14px Inter, sans-serif; cursor: pointer">DT</button>
+  </div>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":"Headquarters"},"subtitle":{"editor":"text","default":"North region · 9 buildings"},"$preview":{"width":1180,"height":72}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      title: this.props.title ?? 'Headquarters',
+      subtitle: this.props.subtitle ?? 'North region · 9 buildings'
+    };
+  }
+}
+</script>
+</body>
+</html>

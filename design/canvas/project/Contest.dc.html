@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Contest detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="league" hint-size="100%,1100px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Contests" subtitle="Weekly rotation · monthly finals · yearly Hall of Entrepreneurs" hint-size="100%,72px"></dc-import>
+    <a href="League.dc.html" style="font-size: 13px; text-decoration: none; margin-top: -8px">← Back to Leagues</a>
+
+    <div role="tablist" aria-label="Contest" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+        <button role="tab" aria-selected="{{ c.on }}" onClick="{{ c.pick }}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{ c.border }}; background: {{ c.bg }}; color: #E8EAED; cursor: pointer; display: flex; align-items: center; gap: 8px; font: 600 14px Inter, sans-serif">
+          {{ c.name }}<span style="font-size: 11px; font-weight: 700; color: #9AA4B2">{{ c.cadence }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <section style="background: #12161D; border: 1px solid #252C38; border-radius: 20px; padding: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: center">
+      <div style="flex: 2 1 420px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #F2B33D">{{ k.cadenceLong }}</span>
+        <h2 class="disp" style="margin: 0; font-size: 38px; font-weight: 700; letter-spacing: -1px">{{ k.name }}</h2>
+        <p style="margin: 0; font-size: 16px; color: #9AA4B2; line-height: 1.55; max-width: 620px">{{ k.pitch }}</p>
+      </div>
+      <div style="flex: 1 1 260px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Your rank</span><span class="mono" style="font-size: 26px; font-weight: 600; color: #F2B33D">{{ k.rank }}</span></div>
+        <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Your score</span><span class="mono" style="font-size: 26px; font-weight: 600">{{ k.score }}</span></div>
+        <div style="grid-column: span 2; background: #181D26; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px"><span style="font-size: 12px; color: #9AA4B2">Ends in</span><span class="mono" style="font-size: 18px; font-weight: 600">{{ k.ends }}</span></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <div style="flex: 3 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <h3 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">How you score</h3>
+          <code class="mono" style="display: block; background: #0B0E13; border: 1px solid #252C38; border-radius: 10px; padding: 14px 16px; font-size: 14px; color: #E8EAED; white-space: pre-wrap; line-height: 1.6">{{ k.formula }}</code>
+          <span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Points = min(1,500, 1,000 × your metric ÷ last week's 90th percentile in your division). A small company with a great week can outscore a big one.</span>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px">
+            <h3 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">What counted for you</h3>
+            <span style="font-size: 13px; color: #9AA4B2">Recomputed hourly from settled events</span>
+          </div>
+          <sc-for list="{{ k.lines }}" as="l" hint-placeholder-count="4">
+            <div style="display: flex; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid #1E242E; font-size: 14px">
+              <span style="width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: {{ l.dotBg }}; color: {{ l.dotFg }}">{{ l.icon }}</span>
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span>{{ l.what }}</span><span style="font-size: 12px; color: #9AA4B2">{{ l.why }}</span></span>
+              <span class="mono" style="color: {{ l.valColor }}">{{ l.val }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+          <h3 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Rules &amp; eligibility</h3>
+          <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.5; color: #C4CBD5">
+            <sc-for list="{{ k.rules }}" as="r" hint-placeholder-count="4"><li>{{ r }}</li></sc-for>
+          </ul>
+        </div>
+      </div>
+
+      <div style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+          <h3 class="disp" style="margin: 0 0 8px; font-size: 20px; font-weight: 600">Standings · your group</h3>
+          <sc-for list="{{ k.board }}" as="b" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 44px; padding: 0 10px; border-radius: 10px; background: {{ b.bg }}; border: 1px solid {{ b.border }}">
+              <span class="mono" style="font-weight: 600">{{ b.rank }}</span>
+              <span style="font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ b.name }}</span>
+              <span class="mono" style="font-size: 13px">{{ b.pts }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+          <h3 class="disp" style="margin: 0 0 4px; font-size: 20px; font-weight: 600">Rewards</h3>
+          <sc-for list="{{ k.rewards }}" as="w" hint-placeholder-count="4">
+            <div style="display: flex; gap: 12px; align-items: center; background: #181D26; border-radius: 12px; padding: 12px 14px; border: 1px solid {{ w.border }}">
+              <span class="mono" style="font-size: 12px; font-weight: 700; min-width: 64px; color: {{ w.color }}">{{ w.band }}</span>
+              <span style="font-size: 14px; flex: 1">{{ w.prize }}</span>
+            </div>
+          </sc-for>
+          <span style="font-size: 12px; color: #9AA4B2; line-height: 1.5">Cash prizes are capped at min(25,000 × division multiplier, 5% of the division's median weekly profit). Most rewards are cosmetic.</span>
+        </div>
+      </div>
+    </section>
+
+    <section style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <h3 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Season calendar</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
+        <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px; border-left: 0"><span class="mono" style="font-size: 12px; color: #F2B33D">EVERY WEEK</span><strong style="font-size: 14px">Industry League + 3 rotating contests</strong><span style="font-size: 12px; color: #9AA4B2">Next week: Power Rush, Retail Rush, Quality Quest</span></div>
+        <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span class="mono" style="font-size: 12px; color: #8FB6FF">MONTHLY · in 9 days</span><strong style="font-size: 14px">Tycoon Championship, Sector Championship, Alliance War</strong><span style="font-size: 12px; color: #9AA4B2">Finals for top 30 of Diamond+ leagues</span></div>
+        <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span class="mono" style="font-size: 12px; color: #FF8A65">YEARLY · day 365</span><strong style="font-size: 14px">Hall of Entrepreneurs</strong><span style="font-size: 12px; color: #9AA4B2">Tycoon of the Year needs 40+ active weeks</span></div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { c: 'supplier' };
+  }
+  renderVals() {
+    const ok = (what, why, val) => ({ what, why, val, icon: '✓', dotBg: '#12291E', dotFg: '#3FBF7F', valColor: '#E8EAED' });
+    const no = (what, why, val) => ({ what, why, val, icon: '×', dotBg: '#2A1515', dotFg: '#F0605A', valColor: '#9AA4B2' });
+    const C = {
+      supplier: {
+        name: 'Reliable Supplier Week', cadence: 'weekly', cadenceLong: 'Weekly contest · week 43',
+        pitch: 'Deliver contracted goods on time to many different buyers. Rewards the companies other players can count on.',
+        rank: '#3', score: '1,240', ends: '2d 14h 08m',
+        formula: 'metric = Σ on-time delivered contract value\n  only buyers that are not linked to you\n  needs 3+ unique buyers this week',
+        lines: [ok('C-1042 · flour to Harbor Bakeries', '6 deliveries, all inside the window', '+11,808'),
+                ok('C-1077 · bread to City Grocers', '2 deliveries on time', '+2,240'),
+                no('C-0988 · coal you bought', 'You were the buyer; only sales count', '0'),
+                no('C-1090 · flour to Westmill Co', 'Linked account (same device). Excluded from all scores.', '0')],
+        rules: ['Bayesian reliability of 70 or more to enter', 'Late deliveries count at 50%; breaches remove the whole contract', 'Prices outside 0.85–1.15× reference are excluded', 'Bankrupt companies sit out one weekly cycle'],
+        board: [['#1', 'Copperline Ltd', '1,412'], ['#2', 'Harbor Bakeries', '1,301'], ['#3', 'Northwind Holdings', '1,240', true], ['#4', 'Ridgeback Mining', '1,198'], ['#5', 'Saltmarsh Foods', '1,102']],
+        rewards: [['#1', 'Gold verified-supplier badge glow + 25,000 CR (capped)'], ['Top 3', 'Silver badge glow for 4 weeks'], ['Top 10', 'Profile ribbon "Reliable"'], ['Entered', 'Checkpoint cosmetic drop at 500 points']]
+      },
+      margin: {
+        name: 'Margin Master', cadence: 'weekly', cadenceLong: 'Weekly contest · week 43',
+        pitch: 'Run the leanest operation. Score your gross margin, with a volume gate so tiny shops cannot game it.',
+        rank: '#9', score: '804', ends: '2d 14h 08m',
+        formula: 'metric = (revenue − COGS) ÷ revenue\n  revenue from NPCs + unlinked players\n  needs 20,000 CR revenue this week',
+        lines: [ok('Revenue this week', 'NPC buyers and unlinked players', '61,420'),
+                ok('Cost of goods sold', 'Inputs at lot cost, op costs, wages', '−42,260'),
+                no('Sale of Iron Mine equipment', 'Asset sales are not revenue', '0'),
+                ok('Gross margin', 'Above the 20k volume gate', '31.2%')],
+        rules: ['Minimum 20,000 CR revenue', 'Internal transfers between your own buildings do not count', 'Asset sales, loan proceeds and owner injections excluded'],
+        board: [['#1', 'Orchid Cosmetics', '1,500'], ['#2', 'Lumen Glassworks', '1,288'], ['#8', 'Bluegate Textiles', '831'], ['#9', 'Northwind Holdings', '804', true], ['#10', 'Kestrel Power', '790']],
+        rewards: [['#1', 'Title "Margin Master" for 7 days'], ['Top 3', 'Ledger-green profile frame'], ['Top 10', 'Research-point bundle (capped)'], ['Entered', 'Checkpoint cosmetic drop']]
+      },
+      community: {
+        name: 'Harbor Stadium', cadence: 'co-op', cadenceLong: 'Community project · server-wide',
+        pitch: 'Everyone builds one landmark together. Deliver cement, steel and planks; every checkpoint unlocks rewards for all contributors.',
+        rank: '#412', score: '1,800 cement', ends: '5d 02h',
+        formula: 'progress = Σ goods delivered by all players\n  checkpoints at 25 / 50 / 75 / 100%\n  top 10 contributors named on the monument',
+        lines: [ok('1,800 cement delivered', 'Counted toward the 40,000 goal', '+1,800'),
+                ok('Checkpoint 50% reached', 'Stadium lights cosmetic unlocked for you', '✓'),
+                no('Checkpoint 75%', 'Server is at 62%', '—'),
+                ok('Your share', 'Top 15% of contributors', '4.5%')],
+        rules: ['One delivery of any listed good makes you a contributor', 'Deliveries are valued at reference price', 'No CR prizes: rewards are cosmetic and shared'],
+        board: [['#1', 'Granite Bay Co', '9,400'], ['#2', 'Atlas Autoworks', '8,950'], ['#3', 'Ironvale Group', '7,100'], ['#412', 'Northwind Holdings', '1,800', true], ['…', '2,140 contributors', '']],
+        rewards: [['25%', 'Stadium flag for your HQ'], ['50%', 'Stadium lights (unlocked)'], ['75%', 'Matchday avatar outfit'], ['100%', 'Monument plaque · top 10 named']]
+      },
+      championship: {
+        name: 'Tycoon Championship', cadence: 'monthly', cadenceLong: 'Monthly final · October',
+        pitch: 'The top 30 of each division’s Diamond and higher leagues meet in a final. Your score is the sum of your four weekly contest points.',
+        rank: '—', score: 'not qualified', ends: '9d 06h',
+        formula: 'score = Σ points from the 4 weekly contests\n  qualify: top 30 of Diamond+ leagues in your division',
+        lines: [no('Your league is Gold', 'Diamond or higher is needed to qualify', '—'),
+                ok('Path', 'Promote twice: Gold → Platinum → Diamond', '2 weeks'),
+                ok('Last month’s winner', 'Copperline Ltd · Small division', '5,212'),
+                ok('Spectator rewards', 'Predict the top 3 for a cosmetic', 'open')],
+        rules: ['Top 30 of Diamond, Master and Tycoon leagues per division', 'Linked accounts and wash trades excluded as in weekly contests', 'Ties go to the earlier achiever'],
+        board: [['#1', 'Copperline Ltd', '5,212'], ['#2', 'Atlas Autoworks', '5,034'], ['#3', 'Sable Logistics', '4,870'], ['#4', 'Orchid Cosmetics', '4,612'], ['#5', 'Granite Bay Co', '4,401']],
+        rewards: [['#1', 'Numbered trophy car (no CR value) + title'], ['Top 3', 'Championship podium frame'], ['Top 30', 'Finalist badge for the season'], ['Fans', 'Prediction cosmetic']]
+      }
+    };
+    const cur = C[this.state.c];
+    const chips = Object.keys(C).map(id => ({
+      name: C[id].name, cadence: C[id].cadence, on: id === this.state.c,
+      border: id === this.state.c ? '#F2B33D' : '#343C4A', bg: id === this.state.c ? '#2B2312' : '#151A22',
+      pick: () => this.setState({ c: id })
+    }));
+    const colors = ['#F2B33D', '#C9D2DD', '#8ED692', '#9AA4B2'];
+    return {
+      chips,
+      k: {
+        ...cur,
+        board: cur.board.map(([rank, name, pts, me]) => ({ rank, name: me ? name + ' (you)' : name, pts, bg: me ? '#2B2312' : 'transparent', border: me ? '#5C4716' : 'transparent' })),
+        rewards: cur.rewards.map(([band, prize], i) => ({ band, prize, color: colors[i], border: i === 0 ? '#5C4716' : 'transparent' }))
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

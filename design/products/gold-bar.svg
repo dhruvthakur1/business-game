@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<defs>
+<linearGradient id="gf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9B94F"/><stop offset="1" stop-color="#9C6E22"/></linearGradient>
+<linearGradient id="gt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0BE"/><stop offset="1" stop-color="#E0AE4A"/></linearGradient>
+</defs>
+<ellipse cx="80" cy="128" rx="64" ry="6" fill="#000" opacity="0.25"/>
+<path d="M18 120 L142 120 L126 92 L34 92 Z" fill="url(#gf)"/>
+<path d="M34 92 L126 92 L114 70 L46 70 Z" fill="url(#gt)"/>
+<path d="M126 92 L142 120" stroke="#7A5418" stroke-width="1.5"/>
+<rect x="58" y="76" width="44" height="11" rx="2" fill="none" stroke="#B8862E" stroke-width="1.2"/>
+<text x="80" y="84.5" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="700" fill="#8A6A20">999.9</text>
+<text x="80" y="110" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="800" letter-spacing="1" fill="#7A5418">1 KG FINE GOLD</text>
+<path d="M50 74 L76 74" stroke="#FFFFFF" stroke-width="2.5" opacity="0.7" stroke-linecap="round"/>
+<path d="M128 40 L130 46 L136 48 L130 50 L128 56 L126 50 L120 48 L126 46 Z M32 52 L33.4 56.6 L38 58 L33.4 59.4 L32 64 L30.6 59.4 L26 58 L30.6 56.6 Z" fill="#FFF0BE"/>
+</svg>

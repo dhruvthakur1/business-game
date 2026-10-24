@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<path d="M52 26 L66 20 Q80 32 94 20 L108 26 L136 50 L120 68 L110 60 L110 140 L50 140 L50 60 L40 68 L24 50 Z" fill="#2B2E35"/>
+<path d="M66 20 Q80 32 94 20" stroke="#4A4F57" stroke-width="3" fill="none"/>
+<path d="M110 60 L110 140 L100 140 L104 60 Z" fill="#23262C"/>
+<circle cx="80" cy="82" r="18" fill="#F2B33D"/>
+<path d="M70 92 V76 l10 8 10 -8 v16" stroke="#1A1405" stroke-width="3.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="80" y="120" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="9" font-weight="800" letter-spacing="2" fill="#F5F6F8">MERCANTILE</text>
+<path d="M50 132 L110 132" stroke="#3A3F47" stroke-width="2"/>
+</svg>

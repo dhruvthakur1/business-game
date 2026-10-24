@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Headquarters</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="hq" hint-size="100%,1000px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Headquarters" subtitle="Good afternoon. 3 jobs are ready to collect." hint-size="100%,72px"></dc-import>
+
+    <section aria-label="Key numbers" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Cash on hand</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600; color: #F2B33D">248,310</span>
+        <span class="mono" style="font-size: 12px; color: #3FBF7F">▲ +6,140 today</span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">7-day operating profit</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">48,920</span>
+        <span class="mono" style="font-size: 12px; color: #3FBF7F">▲ 12.4% vs last week</span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Conservative net worth</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">1,840,200</span>
+        <span class="mono" style="font-size: 12px; color: #3FBF7F">▲ 3.1% · 24h average</span>
+      </div>
+      <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA4B2">Credit score</span>
+        <span class="mono" style="font-size: 28px; font-weight: 600">742</span>
+        <span style="font-size: 12px; color: #9AA4B2">Borrow at <span class="mono" style="color: #E8EAED">0.15%/day</span> · <a href="Bank.dc.html">Bank</a></span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px">
+      <div style="flex: 3 1 560px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">North region · 9 of 12 plots</h2>
+          <div role="tablist" aria-label="View" style="display: flex; background: #0B0E13; border-radius: 10px; padding: 4px; gap: 4px">
+            <button role="tab" aria-selected="{{ isMap }}" onClick="{{ showMap }}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: {{ mapBg }}; color: #E8EAED; font: 600 13px Inter, sans-serif; cursor: pointer">Map</button>
+            <button role="tab" aria-selected="{{ isList }}" onClick="{{ showList }}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 8px; background: {{ listBg }}; color: #E8EAED; font: 600 13px Inter, sans-serif; cursor: pointer">List</button>
+          </div>
+        </div>
+        <sc-if value="{{ isMap }}" hint-placeholder-val="{{ true }}">
+          <div style="overflow-x: auto; background: #0F1319; border-radius: 12px; padding: 24px 0 16px">
+            <div style="position: relative; width: 532px; height: 380px; margin: 0 auto">
+              <a href="Building.dc.html" aria-label="Grain Farm 1, ready" style="position: absolute; left: 166px; top: 0px"><img src="/_blob/529d4d4192c303e53b3f03491d8bc1ae" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Grain Farm 2, running" style="position: absolute; left: 249px; top: 48px"><img src="/_blob/529d4d4192c303e53b3f03491d8bc1ae" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Flour Mill, running" style="position: absolute; left: 83px; top: 48px"><img src="/_blob/0714017a98efa55a52afd11fc9f2ead9" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Iron Mine, idle" style="position: absolute; left: 332px; top: 96px"><img src="/_blob/99ddf3a4fc1095d9ed7ba51cb989b326" alt="" style="width: 200px; height: 180px; display: block; opacity: 0.6"></a>
+              <a href="Building.dc.html" aria-label="Bakery, ready" style="position: absolute; left: 166px; top: 96px"><img src="/_blob/0902524cb342bc9e2e6d1ea052f25d04" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Supermarket, selling" style="position: absolute; left: 0px; top: 96px"><img src="/_blob/dd3b1c781de16af7d8bc002b683bf07c" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Thermal Power Plant, running" style="position: absolute; left: 249px; top: 144px"><img src="/_blob/afda73b599a886a5f516eab7bd1ee527" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Steel Mill, ready" style="position: absolute; left: 83px; top: 144px"><img src="/_blob/8ba3fc2721065aa8c24e1451961e837d" alt="" style="width: 200px; height: 180px; display: block"></a>
+              <a href="Building.dc.html" aria-label="Solar Farm, under construction" style="position: absolute; left: 166px; top: 192px"><img src="/_blob/316501b03cecf473b828c4b7668fe279" alt="" style="width: 200px; height: 180px; display: block; opacity: 0.55"></a>
+
+              <span style="position: absolute; left: 236px; top: 30px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: #F2B33D; color: #1A1405">Ready</span>
+              <span class="mono" style="position: absolute; left: 330px; top: 84px; font-size: 11px; padding: 4px 8px; border-radius: 999px; background: #12291E; color: #6FD3A6">64%</span>
+              <span class="mono" style="position: absolute; left: 150px; top: 72px; font-size: 11px; padding: 4px 8px; border-radius: 999px; background: #12291E; color: #6FD3A6">22%</span>
+              <span style="position: absolute; left: 410px; top: 150px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px; background: #252C38; color: #C4CBD5">Idle</span>
+              <span style="position: absolute; left: 236px; top: 118px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: #F2B33D; color: #1A1405">Ready</span>
+              <span style="position: absolute; left: 60px; top: 136px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 999px; background: #0F2A20; color: #6FD3A6">Selling</span>
+              <span class="mono" style="position: absolute; left: 336px; top: 168px; font-size: 11px; padding: 4px 8px; border-radius: 999px; background: #12291E; color: #6FD3A6">81%</span>
+              <span style="position: absolute; left: 130px; top: 166px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: #F2B33D; color: #1A1405">Ready</span>
+              <span class="mono" style="position: absolute; left: 222px; top: 250px; font-size: 11px; padding: 4px 8px; border-radius: 999px; background: #0F1F33; color: #8CC4FF">Building 62%</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #9AA4B2">
+            <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: #F2B33D"></span>Ready</span>
+            <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: #6FD3A6"></span>Running</span>
+            <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: #8CC4FF"></span>Construction</span>
+            <span style="display: flex; gap: 6px; align-items: center"><span style="width: 8px; height: 8px; border-radius: 999px; background: #6B7585"></span>Idle (needs iron-ore contract)</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px">
+              <thead><tr style="color: #9AA4B2; text-align: left"><th style="padding: 10px 8px; font-weight: 500">Building</th><th style="padding: 10px 8px; font-weight: 500">Level</th><th style="padding: 10px 8px; font-weight: 500">Status</th><th style="padding: 10px 8px; font-weight: 500; text-align: right">Net/day</th></tr></thead>
+              <tbody class="mono">
+                <sc-for list="{{ rows }}" as="r" hint-placeholder-count="9">
+                  <tr style="border-top: 1px solid #252C38"><td style="padding: 12px 8px; font-family: Inter, sans-serif">{{ r.name }}</td><td style="padding: 12px 8px">{{ r.lv }}</td><td style="padding: 12px 8px; font-family: Inter, sans-serif; color: {{ r.color }}">{{ r.status }}</td><td style="padding: 12px 8px; text-align: right">{{ r.net }}</td></tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="flex: 2 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Ready to collect</h2>
+            <span class="mono" style="font-size: 13px; color: #9AA4B2">{{ readyCount }}</span>
+          </div>
+          <sc-if value="{{ hasReady }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #181D26; border-radius: 10px; padding: 12px 14px; font-size: 14px"><span>Grain Farm 1</span><span class="mono" style="color: #8ED692">100 wheat · Q1</span></div>
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #181D26; border-radius: 10px; padding: 12px 14px; font-size: 14px"><span>Bakery</span><span class="mono" style="color: #F7B57A">40 bread · Q1</span></div>
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #181D26; border-radius: 10px; padding: 12px 14px; font-size: 14px"><span>Steel Mill</span><span class="mono" style="color: #8CC4FF">60 steel · Q0</span></div>
+            </div>
+            <button onClick="{{ collect }}" style="height: 48px; border: 0; border-radius: 10px; background: #F2B33D; color: #1A1405; font: 700 15px Inter, sans-serif; cursor: pointer">Collect all &amp; restart jobs</button>
+          </sc-if>
+          <sc-if value="{{ collected }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 12px; align-items: flex-start; background: #12291E; border-radius: 12px; padding: 14px">
+              <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="#3FBF7F" stroke-width="1.6" fill="none"/><path d="M6.5 10.2l2.3 2.3 4.7-4.9" stroke="#3FBF7F" stroke-width="1.6" fill="none"/></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 14px">Collected and restarted 3 jobs</strong><span style="font-size: 13px; color: #9AA4B2">Inputs reserved from Warehouse North. Next ready in 3h 52m.</span></div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Industry League</h2>
+            <span style="font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: #2B2312; color: #F2B33D">Gold · Small</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 12px">
+            <span class="mono" style="font-size: 40px; font-weight: 600">#6</span>
+            <span style="font-size: 14px; color: #9AA4B2">of 30 · promotion zone is top 7</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="height: 8px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 83%; height: 100%; background: #F2B33D"></div></div>
+            <span style="font-size: 13px; color: #9AA4B2"><span class="mono" style="color: #E8EAED">1,200 CR</span> behind #5 Ferro Labs · ends in 2d 14h</span>
+          </div>
+          <a href="League.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none">Open league table →</a>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px">
+      <div style="flex: 3 1 560px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Cash flow · last 7 days</h2>
+          <div style="display: flex; gap: 16px; font-size: 12px; color: #9AA4B2">
+            <span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: #5AA9FF"></span>Revenue</span>
+            <span style="display: flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: #3A4352"></span>Costs</span>
+          </div>
+        </div>
+        <div role="img" aria-label="Revenue rose from 9.8k to 14.2k per day while costs stayed near 7k" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; align-items: end; height: 180px; border-bottom: 1px solid #252C38">
+          <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
+            <div style="display: flex; gap: 4px; align-items: flex-end; justify-content: center; height: 100%">
+              <div style="width: 40%; height: {{ d.rev }}; background: #5AA9FF; border-radius: 4px 4px 0 0"></div>
+              <div style="width: 40%; height: {{ d.cost }}; background: #3A4352; border-radius: 4px 4px 0 0"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="mono" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; font-size: 11px; color: #9AA4B2; text-align: center">
+          <span>D41</span><span>D42</span><span>D43</span><span>D44</span><span>D45</span><span>D46</span><span>D47</span>
+        </div>
+      </div>
+      <div style="flex: 2 1 340px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+        <h2 class="disp" style="margin: 0 0 8px; font-size: 20px; font-weight: 600">Activity</h2>
+        <div style="display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1E242E; font-size: 13px"><span class="mono" style="color: #9AA4B2; width: 44px">14:02</span><span style="flex: 1">Contract C-1042 delivered on time</span><span class="mono" style="color: #3FBF7F">+4,320</span></div>
+        <div style="display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1E242E; font-size: 13px"><span class="mono" style="color: #9AA4B2; width: 44px">12:40</span><span style="flex: 1">Ferro Labs passed you in Gold league</span><span class="mono" style="color: #F0605A">−340</span></div>
+        <div style="display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1E242E; font-size: 13px"><span class="mono" style="color: #9AA4B2; width: 44px">00:00</span><span style="flex: 1">Term loan installment paid</span><span class="mono" style="color: #F0605A">−1,718.65</span></div>
+        <div style="display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1E242E; font-size: 13px"><span class="mono" style="color: #9AA4B2; width: 44px">D46</span><span style="flex: 1">Flour reference price ▲ 4.2%</span><span class="mono" style="color: #9AA4B2">8.34</span></div>
+        <div style="display: flex; gap: 12px; padding: 10px 0; font-size: 13px"><span class="mono" style="color: #9AA4B2; width: 44px">D46</span><span style="flex: 1">New RFQ matches you: 2,400 flour Q1+</span><a href="Contracts.dc.html" style="text-decoration: none; font-weight: 600">Bid</a></div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'map', collected: false };
+  }
+  renderVals() {
+    const isMap = this.state.view === 'map';
+    const collected = this.state.collected;
+    const rev = [9.8, 10.4, 11.1, 10.9, 12.6, 13.4, 14.2];
+    const cost = [6.9, 7.1, 7.0, 7.4, 7.2, 7.6, 7.3];
+    const days = rev.map((r, i) => ({ rev: Math.round(r / 15 * 100) + '%', cost: Math.round(cost[i] / 15 * 100) + '%' }));
+    const g = '#6FD3A6', y = '#F2B33D', m = '#9AA4B2', b = '#8CC4FF';
+    const rows = [
+      { name: 'Grain Farm 1', lv: 4, status: 'Ready', color: y, net: '+3,656' },
+      { name: 'Grain Farm 2', lv: 3, status: 'Running 64%', color: g, net: '+2,742' },
+      { name: 'Flour Mill', lv: 3, status: 'Running 22%', color: g, net: '+1,629' },
+      { name: 'Bakery', lv: 3, status: 'Ready', color: y, net: '+5,070' },
+      { name: 'Supermarket', lv: 2, status: 'Selling', color: g, net: '+2,880' },
+      { name: 'Thermal Power Plant', lv: 2, status: 'Running 81%', color: g, net: '+2,496' },
+      { name: 'Steel Mill', lv: 1, status: 'Ready', color: y, net: '+1,547' },
+      { name: 'Iron Mine', lv: 1, status: 'Idle', color: m, net: '0' },
+      { name: 'Solar Farm', lv: 1, status: 'Building 62%', color: b, net: '—' }
+    ];
+    return {
+      isMap, isList: !isMap,
+      mapBg: isMap ? '#252C38' : 'transparent',
+      listBg: isMap ? 'transparent' : '#252C38',
+      showMap: () => this.setState({ view: 'map' }),
+      showList: () => this.setState({ view: 'list' }),
+      hasReady: !collected, collected,
+      readyCount: collected ? '0' : '3',
+      collect: () => this.setState({ collected: true }),
+      days, rows
+    };
+  }
+}
+</script>
+</body>
+</html>

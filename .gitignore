@@ -1,0 +1,19 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local development database (server/scripts/devdb.mjs)
+server/.pgdata/
+server/.pgdata.log
+
+# Secrets and local settings
+.env
+.env.*
+.claude/settings.local.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

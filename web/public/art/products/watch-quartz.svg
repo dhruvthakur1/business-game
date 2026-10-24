@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<rect x="62" y="6" width="36" height="52" rx="6" fill="#2B2E35"/>
+<rect x="62" y="102" width="36" height="52" rx="6" fill="#2B2E35"/>
+<path d="M80 118 v4 M80 128 v4 M80 138 v4" stroke="#4A4F57" stroke-width="3" stroke-linecap="round"/>
+<circle cx="80" cy="80" r="40" fill="#8C95A1"/>
+<circle cx="80" cy="80" r="38" fill="#AEB6C0"/>
+<circle cx="80" cy="80" r="35" fill="#D5DAE0"/>
+<rect x="117" y="75" width="7" height="10" rx="2" fill="#AEB6C0"/>
+<circle cx="80" cy="80" r="31" fill="#F5F6F8"/>
+<circle cx="80" cy="80" r="26" fill="none" stroke="#2B2E35" stroke-width="5" stroke-dasharray="1.2 12.4" transform="rotate(-91.5 80 80)"/>
+<text x="80" y="66" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="5" font-weight="700" fill="#2B2E35">MERCANTILE</text>
+<text x="80" y="100" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="4.5" fill="#6E737A">QUARTZ</text>
+<path d="M80 80 L67 72" stroke="#2B2E35" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M80 80 L101 68" stroke="#2B2E35" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M80 86 L80 56" stroke="#E5534B" stroke-width="1" stroke-linecap="round"/>
+<circle cx="80" cy="80" r="2.5" fill="#2B2E35"/>
+<path d="M58 62 Q66 52 78 50" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.6" stroke-linecap="round"/>
+</svg>

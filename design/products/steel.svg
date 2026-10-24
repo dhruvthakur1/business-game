@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<ellipse cx="82" cy="134" rx="66" ry="5" fill="#000" opacity="0.25"/>
+<path d="M28 112 L40 104 L96 104 L84 112 Z" fill="#D5DAE0"/>
+<rect x="28" y="112" width="56" height="18" fill="#AEB6C0"/>
+<path d="M84 112 L96 104 L96 122 L84 130 Z" fill="#8C95A1"/>
+<path d="M78 112 L90 104 L146 104 L134 112 Z" fill="#D5DAE0"/>
+<rect x="78" y="112" width="56" height="18" fill="#AEB6C0"/>
+<path d="M134 112 L146 104 L146 122 L134 130 Z" fill="#8C95A1"/>
+<path d="M52 94 L64 86 L120 86 L108 94 Z" fill="#E6E9ED"/>
+<rect x="52" y="94" width="56" height="18" fill="#C0C7D0"/>
+<path d="M108 94 L120 86 L120 104 L108 112 Z" fill="#9AA3AE"/>
+<path d="M58 99 H100 M34 117 H76 M84 117 H126" stroke="#F5F6F8" stroke-width="1.5" opacity="0.7"/>
+<text x="80" y="108" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="7" font-weight="700" fill="#6E737A">ST-24</text>
+</svg>

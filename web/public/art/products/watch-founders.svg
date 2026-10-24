@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<defs>
+<radialGradient id="em" cx="0.45" cy="0.4" r="0.7"><stop offset="0" stop-color="#159A72"/><stop offset="0.7" stop-color="#0A5A41"/><stop offset="1" stop-color="#04261B"/></radialGradient>
+<linearGradient id="cer" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4A4D57"/><stop offset="0.4" stop-color="#16171C"/><stop offset="1" stop-color="#050506"/></linearGradient>
+<radialGradient id="halo" cx="0.5" cy="0.5" r="0.5"><stop offset="0.6" stop-color="#F6D88A" stop-opacity="0.25"/><stop offset="1" stop-color="#F6D88A" stop-opacity="0"/></radialGradient>
+</defs>
+<circle cx="80" cy="80" r="64" fill="url(#halo)"/>
+<rect x="61" y="4" width="38" height="54" rx="6" fill="#121317"/>
+<rect x="61" y="102" width="38" height="54" rx="6" fill="#121317"/>
+<path d="M61 4 V58 M99 4 V58 M61 102 V156 M99 102 V156" stroke="#D4A64A" stroke-width="1.5"/>
+<circle cx="80" cy="80" r="43" fill="url(#cer)"/>
+<circle cx="80" cy="80" r="38.5" fill="#0C0D10"/>
+<circle cx="80" cy="80" r="36.5" fill="none" stroke="#F5F9FF" stroke-width="3.4" stroke-dasharray="2.4 1.2"/>
+<circle cx="80" cy="80" r="36.5" fill="none" stroke="#BFD8FF" stroke-width="1" stroke-dasharray="0.6 3"/>
+<rect x="120" y="74" width="8" height="12" rx="2" fill="#D4A64A"/>
+<circle cx="80" cy="80" r="32" fill="url(#em)"/>
+<circle cx="80" cy="80" r="26" fill="none" stroke="#1E8C68" stroke-width="0.6" opacity="0.7"/>
+<circle cx="80" cy="80" r="20" fill="none" stroke="#1E8C68" stroke-width="0.6" opacity="0.7"/>
+<circle cx="80" cy="80" r="14" fill="none" stroke="#1E8C68" stroke-width="0.6" opacity="0.7"/>
+<circle cx="80" cy="80" r="27" fill="none" stroke="#F2D27A" stroke-width="5" stroke-dasharray="1.8 12.34" transform="rotate(-92 80 80)"/>
+<path d="M77 49 L80 55 L83 49 Z" fill="#F2D27A"/>
+<text x="80" y="68" text-anchor="middle" font-family="Georgia, serif" font-size="5" letter-spacing="1" fill="#F2D27A">FOUNDERS</text>
+<text x="80" y="101" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="5" font-weight="700" fill="#F2D27A">07 / 100</text>
+<path d="M80 80 L66.5 71.5" stroke="#F2D27A" stroke-width="4" stroke-linecap="round"/>
+<path d="M80 80 L103 67" stroke="#F2D27A" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M80 88 L80 52" stroke="#FFFFFF" stroke-width="0.9"/>
+<circle cx="80" cy="80" r="3" fill="#F2D27A"/>
+<path d="M52 56 Q62 45 78 43" stroke="#FFFFFF" stroke-width="2.5" fill="none" opacity="0.35" stroke-linecap="round"/>
+<path d="M134 22 L136 28 L142 30 L136 32 L134 38 L132 32 L126 30 L132 28 Z M24 40 L25.4 44.6 L30 46 L25.4 47.4 L24 52 L22.6 47.4 L18 46 L22.6 44.6 Z M136 124 L137.2 127.8 L141 129 L137.2 130.2 L136 134 L134.8 130.2 L131 129 L134.8 127.8 Z" fill="#F6D88A"/>
+</svg>

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Contracts and RFQ board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="contracts" hint-size="100%,1000px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Contracts" subtitle="Escrowed, bonded and rated · 1% fee, half freight" hint-size="100%,72px"></dc-import>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+      <div role="tablist" aria-label="Contracts sections" style="display: flex; flex-wrap: wrap; background: #12161D; border: 1px solid #252C38; border-radius: 12px; padding: 4px; gap: 4px">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="3">
+          <button role="tab" aria-selected="{{ t.on }}" onClick="{{ t.pick }}" style="height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: {{ t.bg }}; color: {{ t.fg }}; font: 600 14px Inter, sans-serif; cursor: pointer">{{ t.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px; background: #12161D; border: 1px solid #252C38; border-radius: 12px; padding: 10px 16px">
+        <span style="font-size: 13px; color: #9AA4B2">Your verified reliability</span>
+        <span class="mono" style="font-size: 20px; font-weight: 600; color: #3FBF7F">91.4</span>
+        <span style="font-size: 12px; color: #9AA4B2">7 counterparties</span>
+      </div>
+    </section>
+
+    <sc-if value="{{ isActive }}" hint-placeholder-val="{{ true }}">
+      <section style="display: flex; flex-wrap: wrap; gap: 24px">
+        <div style="flex: 3 1 560px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+          <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span class="mono" style="font-size: 12px; color: #9AA4B2">C-1042 · you sell</span>
+              <h2 class="disp" style="margin: 0; font-size: 22px; font-weight: 600">240 flour Q1+ daily → Harbor Bakeries</h2>
+              <span style="font-size: 13px; color: #9AA4B2">8.20 CR/unit · 24h window 06:00–06:00 · 30 days, renewable · day 12 of 30</span>
+            </div>
+            <span style="align-self: flex-start; font-size: 12px; font-weight: 600; color: #3FBF7F; background: #12291E; padding: 6px 10px; border-radius: 6px">Active · 12/12 on time</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <span style="font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #9AA4B2">Today's delivery</span>
+            <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+              <li style="display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; border-radius: 999px; background: #3FBF7F"></span><span style="font-size: 13px; font-weight: 600">Funded</span><span class="mono" style="font-size: 11px; color: #9AA4B2">escrow 1,968</span></li>
+              <li style="display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; border-radius: 999px; background: #3FBF7F"></span><span style="font-size: 13px; font-weight: 600">Goods locked</span><span class="mono" style="font-size: 11px; color: #9AA4B2">lot F-77 Q2</span></li>
+              <li style="display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; border-radius: 999px; background: #F2B33D"></span><span style="font-size: 13px; font-weight: 600">In transit</span><span class="mono" style="font-size: 11px; color: #9AA4B2">arrives 15:12</span></li>
+              <li style="display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; border-radius: 999px; background: #252C38"></span><span style="font-size: 13px; color: #9AA4B2">Delivered</span><span class="mono" style="font-size: 11px; color: #9AA4B2">—</span></li>
+              <li style="display: flex; flex-direction: column; gap: 8px"><span style="height: 6px; border-radius: 999px; background: #252C38"></span><span style="font-size: 13px; color: #9AA4B2">Settled</span><span class="mono" style="font-size: 11px; color: #9AA4B2">+1,948 net</span></li>
+            </ol>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px">
+            <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Your performance bond</span><span class="mono" style="font-size: 18px">1,378 CR</span><span style="font-size: 12px; color: #9AA4B2">10% of 7-day value, locked</span></div>
+            <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">If late</span><span class="mono" style="font-size: 18px">1%/h · max 10%</span><span style="font-size: 12px; color: #9AA4B2">paid from your bond</span></div>
+            <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #9AA4B2">Exit</span><span class="mono" style="font-size: 18px">72h notice</span><span style="font-size: 12px; color: #9AA4B2">no penalty</span></div>
+          </div>
+        </div>
+        <div style="flex: 2 1 340px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+          <h2 class="disp" style="margin: 0 0 8px; font-size: 20px; font-weight: 600">All contracts</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1E242E; gap: 10px"><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">Flour → Harbor Bakeries</span><span class="mono" style="font-size: 12px; color: #9AA4B2">C-1042 · sell · daily</span></div><span style="font-size: 12px; color: #3FBF7F">On time</span></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1E242E; gap: 10px"><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">Coal ← Ridgeback Mining</span><span class="mono" style="font-size: 12px; color: #9AA4B2">C-0988 · buy · per cycle</span></div><span style="font-size: 12px; color: #F2B33D">Late 2h</span></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1E242E; gap: 10px"><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">MWh → Ferro Labs</span><span class="mono" style="font-size: 12px; color: #9AA4B2">C-1101 · sell · daily</span></div><span style="font-size: 12px; color: #9AA4B2">Offered · 41h left</span></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; gap: 10px"><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px">Iron ore ← open RFQ</span><span class="mono" style="font-size: 12px; color: #9AA4B2">R-311 · 4 sealed bids</span></div><span style="font-size: 12px; color: #9AA4B2">Closes 18:00</span></div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isRfq }}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-wrap: wrap; gap: 24px">
+        <div style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{ rfqs }}" as="r" hint-placeholder-count="4">
+            <button onClick="{{ r.pick }}" aria-pressed="{{ r.on }}" style="text-align: left; background: #12161D; border: 1.5px solid {{ r.border }}; border-radius: 14px; padding: 16px 18px; color: #E8EAED; cursor: pointer; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-family: Inter, sans-serif">
+              <span style="display: flex; flex-direction: column; gap: 4px">
+                <span style="font-size: 15px; font-weight: 600">{{ r.title }}</span>
+                <span style="font-size: 13px; color: #9AA4B2">{{ r.meta }}</span>
+              </span>
+              <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+                <span class="mono" style="font-size: 15px">≤ {{ r.max }}</span>
+                <span class="mono" style="font-size: 12px; color: #9AA4B2">{{ r.closes }}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="flex: 2 1 340px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; align-self: flex-start">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Sealed bid</h2>
+          <span style="font-size: 14px">{{ selRfq.title }}</span>
+          <span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">Bids stay hidden until the 24h window closes. The buyer awards on price, quality and reliability.</span>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #9AA4B2">Your unit price
+            <input value="{{ selRfq.suggest }}" style="height: 44px; box-sizing: border-box; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; color: #E8EAED; padding: 0 14px; font: 500 15px 'JetBrains Mono', monospace">
+          </label>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #9AA4B2">Bond if awarded</span><span class="mono">10% of 7-day value</span></div>
+          <button onClick="{{ bid }}" style="height: 48px; border: 0; border-radius: 10px; background: #F2B33D; color: #1A1405; font: 700 15px Inter, sans-serif; cursor: pointer">{{ bidLabel }}</button>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ isDir }}" hint-placeholder-val="{{ false }}">
+      <section style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Supplier directory · iron ore</h2>
+          <span style="font-size: 13px; color: #9AA4B2">Reliability counts only contracts with 3+ unlinked counterparties</span>
+        </div>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px; min-width: 680px">
+            <thead><tr style="color: #9AA4B2; text-align: left; font-size: 13px"><th style="padding: 10px 8px; font-weight: 500">Company</th><th style="padding: 10px 8px; font-weight: 500">Region</th><th style="padding: 10px 8px; font-weight: 500">Quality</th><th style="padding: 10px 8px; font-weight: 500; text-align: right">Price</th><th style="padding: 10px 8px; font-weight: 500; text-align: right">Reliability</th><th style="padding: 10px 8px"></th></tr></thead>
+            <tbody>
+              <tr style="border-top: 1px solid #252C38"><td style="padding: 12px 8px">Ridgeback Mining</td><td style="padding: 12px 8px">East · 4h</td><td class="mono" style="padding: 12px 8px">Q1–Q2</td><td class="mono" style="padding: 12px 8px; text-align: right">6.10</td><td class="mono" style="padding: 12px 8px; text-align: right; color: #3FBF7F">94.0</td><td style="padding: 12px 8px; text-align: right"><a href="#" style="text-decoration: none; font-weight: 600">Propose</a></td></tr>
+              <tr style="border-top: 1px solid #252C38"><td style="padding: 12px 8px">Copperline Ltd</td><td style="padding: 12px 8px">East · 4h</td><td class="mono" style="padding: 12px 8px">Q0–Q1</td><td class="mono" style="padding: 12px 8px; text-align: right">5.85</td><td class="mono" style="padding: 12px 8px; text-align: right">82.3</td><td style="padding: 12px 8px; text-align: right"><a href="#" style="text-decoration: none; font-weight: 600">Propose</a></td></tr>
+              <tr style="border-top: 1px solid #252C38"><td style="padding: 12px 8px">Tundra Extraction <span style="font-size: 11px; color: #8CC4FF; background: #0F1F33; padding: 2px 6px; border-radius: 4px">new</span></td><td style="padding: 12px 8px">North · 1h</td><td class="mono" style="padding: 12px 8px">Q0</td><td class="mono" style="padding: 12px 8px; text-align: right">5.70</td><td class="mono" style="padding: 12px 8px; text-align: right; color: #9AA4B2">80.0 prior</td><td style="padding: 12px 8px; text-align: right"><a href="#" style="text-decoration: none; font-weight: 600">Propose</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'active', rfq: 0, bid: false };
+  }
+  renderVals() {
+    const tab = this.state.tab;
+    const tabs = [['active', 'Active · 4'], ['rfq', 'RFQ board · 12'], ['dir', 'Suppliers']].map(([k, label]) => ({
+      label, on: k === tab,
+      bg: k === tab ? '#252C38' : 'transparent',
+      fg: k === tab ? '#E8EAED' : '#9AA4B2',
+      pick: () => this.setState({ tab: k })
+    }));
+    const data = [
+      { title: '2,400 flour Q1+ · daily for 14 days', meta: 'Harbor Bakeries · South · min reliability 80', max: '8.40', closes: 'closes in 9h', suggest: '8.25' },
+      { title: '600 steel Q0+ · weekly for 30 days', meta: 'Atlas Autoworks · West · min reliability 85', max: '25.50', closes: 'closes in 17h', suggest: '24.90' },
+      { title: '45 MWh · per cycle for 7 days', meta: 'Ferro Labs · North · min reliability 70', max: '42.00', closes: 'closes in 21h', suggest: '40.80' },
+      { title: '1,000 bread Q2+ · one-off', meta: 'City Grocers Co-op · North · min reliability 75', max: '29.00', closes: 'closes in 3h', suggest: '28.10' }
+    ];
+    const rfqs = data.map((r, i) => ({
+      ...r, on: i === this.state.rfq,
+      border: i === this.state.rfq ? '#F2B33D' : '#252C38',
+      pick: () => this.setState({ rfq: i, bid: false })
+    }));
+    return {
+      tabs,
+      isActive: tab === 'active', isRfq: tab === 'rfq', isDir: tab === 'dir',
+      rfqs, selRfq: data[this.state.rfq],
+      bid: () => this.setState({ bid: true }),
+      bidLabel: this.state.bid ? 'Bid sealed · edit until close' : 'Submit sealed bid'
+    };
+  }
+}
+</script>
+</body>
+</html>

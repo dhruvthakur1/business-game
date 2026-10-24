@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mercantile building models</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+</style>
+</helmet>
+<div style="width: 1440px; min-height: 1640px; box-sizing: border-box; padding: 72px 80px; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; gap: 40px">
+  <header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 48px">
+    <div style="display: flex; flex-direction: column; gap: 12px; max-width: 720px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #F2B33D">Building models · kit v0.1</span>
+      <h1 class="disp" style="margin: 0; font-size: 48px; font-weight: 700; letter-spacing: -1px">Every business sits on one plot</h1>
+      <p style="margin: 0; font-size: 16px; color: #9AA4B2; line-height: 1.55">Twelve launch buildings from the catalog, drawn in one isometric kit so the other 22 types (and player-designed variants) can be assembled from the same parts. Numbers are the level-1 values from the balancing sheet.</p>
+    </div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; font-size: 13px; width: 520px">
+      <span style="color: #9AA4B2">Projection</span><span>Isometric, 30° · 200×180 viewBox</span>
+      <span style="color: #9AA4B2">Light</span><span>Top-left: top &gt; left &gt; right face</span>
+      <span style="color: #9AA4B2">Plot</span><span>166×96 diamond, 7px slab edge</span>
+      <span style="color: #9AA4B2">Sector accent</span><span>Roof or parapet band only</span>
+    </div>
+  </header>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px">
+    <sc-for list="{{ buildings }}" as="b" hint-placeholder-count="12">
+      <article style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+        <div style="background: #161B23; display: flex; justify-content: center; padding: 8px 0 0">
+          <img src="{{ b.img }}" alt="{{ b.name }} model" style="width: 260px; height: 234px; display: block">
+        </div>
+        <div style="padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+            <strong class="disp" style="font-size: 18px; font-weight: 600">{{ b.name }}</strong>
+            <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: {{ b.chipBg }}; color: {{ b.chipFg }}">{{ b.tier }}</span>
+          </div>
+          <span style="font-size: 13px; color: #9AA4B2; line-height: 1.45; min-height: 38px">{{ b.recipe }}</span>
+          <div class="mono" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; border-top: 1px solid #252C38; padding-top: 12px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="color: #9AA4B2; font-family: Inter, sans-serif">Build</span><span>{{ b.cost }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="color: #9AA4B2; font-family: Inter, sans-serif">Net/day</span><span style="color: #3FBF7F">{{ b.net }}</span></div>
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="color: #9AA4B2; font-family: Inter, sans-serif">Unlock</span><span>{{ b.unlock }}</span></div>
+          </div>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px">
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+      <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Levels read at a glance</h2>
+      <p style="margin: 0; font-size: 13px; color: #9AA4B2; line-height: 1.55">Level n adds n× output. On the map the building gains one extra storey or bay every 5 levels and a numbered pennant on the plot corner, so a Lv 25 mill looks bigger than a Lv 3 one without new art per level.</p>
+      <div class="mono" style="display: flex; gap: 8px; font-size: 12px">
+        <span style="padding: 6px 10px; border-radius: 6px; background: #181D26">Lv 1–4 base</span>
+        <span style="padding: 6px 10px; border-radius: 6px; background: #181D26">Lv 5 +storey</span>
+        <span style="padding: 6px 10px; border-radius: 6px; background: #181D26">Lv 10 +bay</span>
+      </div>
+    </div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+      <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">States on the map</h2>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+        <div style="display: flex; gap: 10px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 999px; background: #3FBF7F"></span>Running: smoke / lit windows animate</div>
+        <div style="display: flex; gap: 10px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 999px; background: #F2B33D"></span>Ready to collect: bouncing crate badge</div>
+        <div style="display: flex; gap: 10px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 999px; background: #9AA4B2"></span>Idle: desaturated 40%, no smoke</div>
+        <div style="display: flex; gap: 10px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 999px; background: #F0605A"></span>Blocked (no inputs / MWh): red plug badge</div>
+        <div style="display: flex; gap: 10px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 999px; background: #5AA9FF"></span>Under construction: scaffold overlay + CU bar</div>
+      </div>
+    </div>
+    <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+      <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Sector accents</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-size: 13px">
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #C9533F"></span>Food</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #E0A93B"></span>Agri / milling</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #E07B39"></span>Metals / mining</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #F2B33D"></span>Energy</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #3E8FE0"></span>Electronics</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #5B6B82"></span>Auto</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #2E9E6E"></span>Retail</span>
+        <span style="display: flex; gap: 8px; align-items: center"><span style="width: 14px; height: 14px; border-radius: 4px; background: #D4A64A"></span>Luxury</span>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1640}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const tiers = {
+      T0: ['#2A2318', '#D2B48C'], T1: ['#13261A', '#8ED692'], T2: ['#0F1F33', '#8CC4FF'],
+      T3: ['#211A33', '#C4B0FA'], T4: ['#2E1F12', '#F7B57A'], NRG: ['#2B2312', '#F2B33D'],
+      RET: ['#0F2A20', '#6FD3A6'], T7: ['#2B2312', '#F2B33D']
+    };
+    const rows = [
+      ['Grain Farm', 'T1', 'T1 Primary', '/_blob/529d4d4192c303e53b3f03491d8bc1ae', '60 seeds + 20 fertilizer → 100 wheat · 4 h', '30,000', '+914', 'Lv 1'],
+      ['Flour Mill', 'T2', 'T2 Processed', '/_blob/0714017a98efa55a52afd11fc9f2ead9', '100 wheat → 80 flour · 4 h', '40,000', '+543', 'Lv 1'],
+      ['Bakery', 'T4', 'T4 Consumer', '/_blob/0902524cb342bc9e2e6d1ea052f25d04', '80 flour → 40 bread · 4 h', '40,000', '+1,690', 'Lv 1'],
+      ['Supermarket', 'RET', 'Retail', '/_blob/dd3b1c781de16af7d8bc002b683bf07c', 'Sells food to NPC shoppers at up to 1.35× ref · 60 units/cycle', '50,000', '+1.0–1.8k', 'Lv 3'],
+      ['Iron Mine', 'T0', 'T0 Raw', '/_blob/99ddf3a4fc1095d9ed7ba51cb989b326', '1 MWh → 100 iron ore · 4 h', '60,000', '+858', 'Lv 5'],
+      ['Thermal Power', 'NRG', 'Energy', '/_blob/afda73b599a886a5f516eab7bd1ee527', '50 coal + 100 water → 15 MWh · 4 h', '120,000', '+1,248', 'Lv 5'],
+      ['Solar Farm', 'NRG', 'Energy', '/_blob/316501b03cecf473b828c4b7668fe279', 'No inputs → 8 MWh · 4 h · green score', '250,000', '+1,322', 'Lv 12'],
+      ['Steel Mill', 'T2', 'T2 Processed', '/_blob/8ba3fc2721065aa8c24e1451961e837d', '100 iron ore + 50 coal + 3 MWh → 60 steel', '150,000', '+1,547', 'Lv 10'],
+      ['Chip Fab', 'T3', 'T3 Components', '/_blob/50979693dd2e97aa0b1bfa87cd88f371', '20 wafers + 6 MWh → 30 chips · 4 h', '300,000', '+2,033', 'Lv 20'],
+      ['Car Factory', 'T4', 'T4 Consumer', '/_blob/f0e7be61c1ef8d4ae544d7111d4730d7', '4 engines + 8 parts kits + 10 glass + 5 MWh → 4 cars · 8 h', '500,000', '+2,992', 'Lv 25'],
+      ['Watchmaker', 'T7', 'T7 Luxury', '/_blob/d9914a2e4b66a9426554e7751ce55f53', '1 gold bar + 20 movement parts + 5 sapphire → 4 watches · 8 h', '500,000', '+3,734', 'Lv 30'],
+      ['Luxury Store', 'RET', 'Retail', '/_blob/94b2b9b2d688a97dd216d10194536f0d', 'Sells T7 goods to player wallets at 1.2×–3× wholesale', '300,000', 'market', 'Lv 30']
+    ];
+    const buildings = rows.map(r => ({
+      name: r[0], tier: r[2], img: r[3], recipe: r[4], cost: r[5], net: r[6], unlock: r[7],
+      chipBg: tiers[r[1]][0], chipFg: tiers[r[1]][1]
+    }));
+    return { buildings };
+  }
+}
+</script>
+</body>
+</html>

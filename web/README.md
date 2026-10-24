@@ -1,0 +1,45 @@
+# Mercantile web client
+
+React 18 + TypeScript + Vite frontend for the Mercantile tycoon game. It implements the design canvas
+(`../design/canvas`) as working screens backed by demo data.
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm test           # economy formula tests (Vitest)
+npm run typecheck
+npm run build
+```
+
+## Layout
+
+| Path | What lives there |
+|---|---|
+| `src/styles/tokens.css` | Design tokens: colors, tiers, leagues, type, spacing, radii, motion |
+| `src/styles/global.css` | Base styles and component classes (`.card`, `.btn-*`, `.option`, `.bar`…) |
+| `src/components/` | `AppShell` (sidebar, top bar, mobile tab bar, toasts), `PlotMap` (isometric plots), `ui.tsx` (chips, stat tiles, progress, stepper, segmented control, quality frame), `Icon` |
+| `src/lib/economy.ts` | Pure game formulas: net/day, upgrade cost, admin overhead, quality cap, EMI, credit score, rate tiers, reliability, contest points, value check, income tax, freight, prestige |
+| `src/lib/format.ts` | Number, trend and duration formatting |
+| `src/data/` | Catalog (products, building types), demo company state, contests, research, lifestyle ladders, designer templates |
+| `src/state/game.tsx` | Client game store: cash, wallet, buildings with a demo clock (1 s = 1 game minute), loans, toasts |
+| `src/screens/` | Landing, Onboarding, Headquarters, BuildingDetail, Market, Contracts, Designer, Research, Bank, Leagues, Contests, Showroom, Catalog |
+| `public/art/` | Building and product SVGs copied from `../design/buildings` and `../design/products` |
+
+## Routes
+
+`/` landing · `/start` onboarding · `/app` headquarters · `/app/buildings/:id` · `/app/market` ·
+`/app/contracts?tab=active|rfq|dir` · `/app/designer` · `/app/research` · `/app/bank` · `/app/leagues` ·
+`/app/contests/:id` · `/app/showroom` · `/app/catalog`
+
+Below 900 px the sidebar becomes a bottom tab bar.
+
+## Server connection
+
+`src/state/game.tsx` talks to the API in `../server` (via the Vite proxy on `/api`) for the company, cash,
+buildings and jobs, warehouse, ledger activity, exchange orders and NPC trades. It polls `/api/me` every 5 s
+and re-renders job progress every second. The session token is kept in `localStorage`.
+
+Formulas and catalog data come from `../shared`, the same code the server uses.
+
+Still demo data (no server support yet): research,
+product designer and brands, showroom and personal wallet, and the HQ cash-flow chart.

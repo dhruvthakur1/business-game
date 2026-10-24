@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<ellipse cx="80" cy="146" rx="48" ry="5" fill="#000" opacity="0.2"/>
+<circle cx="70" cy="26" r="7" fill="#FFFFFF" opacity="0.7"/><circle cx="82" cy="20" r="9" fill="#FFFFFF" opacity="0.6"/><circle cx="94" cy="27" r="6" fill="#FFFFFF" opacity="0.7"/>
+<path d="M50 44 L64 34 L80 40 L96 34 L110 44 L104 52 L56 52 Z" fill="#E2D5BB"/>
+<path d="M56 52 L104 52 Q124 70 124 112 Q124 144 104 144 L56 144 Q36 144 36 112 Q36 70 56 52 Z" fill="#EDE3CF"/>
+<path d="M104 52 Q124 70 124 112 Q124 144 104 144 L98 144 Q114 120 108 70 Z" fill="#D9CCAF"/>
+<rect x="54" y="50" width="52" height="7" rx="3" fill="#B98626"/>
+<rect x="52" y="86" width="56" height="34" rx="4" fill="#F2B33D"/>
+<text x="80" y="108" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="800" letter-spacing="1" fill="#1A1405">FLOUR</text>
+<path d="M60 128 Q80 132 100 128" stroke="#C9BB9C" stroke-width="1.5" fill="none"/>
+</svg>

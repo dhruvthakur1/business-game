@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+<defs>
+<radialGradient id="ad" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#3E86E0"/><stop offset="0.6" stop-color="#1A4C99"/><stop offset="1" stop-color="#0B2554"/></radialGradient>
+<linearGradient id="st" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F5F6F8"/><stop offset="1" stop-color="#9AA3AE"/></linearGradient>
+</defs>
+<rect x="60" y="4" width="40" height="54" rx="4" fill="#C8CDD3"/>
+<rect x="60" y="102" width="40" height="54" rx="4" fill="#C8CDD3"/>
+<path d="M73 4 V58 M87 4 V58 M73 102 V156 M87 102 V156 M60 14 H100 M60 24 H100 M60 34 H100 M60 44 H100 M60 112 H100 M60 122 H100 M60 132 H100 M60 142 H100" stroke="#8C95A1" stroke-width="1.2"/>
+<rect x="73" y="4" width="14" height="54" fill="#E6E9ED" opacity="0.5"/>
+<rect x="73" y="102" width="14" height="54" fill="#E6E9ED" opacity="0.5"/>
+<circle cx="80" cy="80" r="42" fill="#6E737A"/>
+<circle cx="80" cy="80" r="41" fill="url(#st)"/>
+<circle cx="80" cy="80" r="36" fill="#EEF1F4"/>
+<rect x="118" y="74" width="9" height="12" rx="2" fill="#C8CDD3"/>
+<path d="M118 72 L122 72 L122 88 L118 88" fill="#9AA3AE"/>
+<circle cx="80" cy="80" r="32" fill="url(#ad)"/>
+<circle cx="80" cy="80" r="26" fill="none" stroke="#F5F6F8" stroke-width="6" stroke-dasharray="2.2 11.4" transform="rotate(-92.4 80 80)"/>
+<rect x="76" y="50" width="2.2" height="8" fill="#F5F6F8"/><rect x="81.8" y="50" width="2.2" height="8" fill="#F5F6F8"/>
+<rect x="96" y="76" width="10" height="8" rx="1" fill="#FFFFFF"/>
+<text x="101" y="82.2" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="5.5" font-weight="700" fill="#1D2733">24</text>
+<text x="80" y="68" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="5" font-weight="700" fill="#F5F6F8">MERCANTILE</text>
+<text x="80" y="101" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="4.2" fill="#9DB9FF">AUTOMATIC</text>
+<path d="M80 80 L66 72" stroke="#F5F6F8" stroke-width="4" stroke-linecap="round"/>
+<path d="M80 80 L103 67" stroke="#F5F6F8" stroke-width="2.8" stroke-linecap="round"/>
+<path d="M80 88 L80 54" stroke="#F2B33D" stroke-width="1.1" stroke-linecap="round"/>
+<circle cx="80" cy="80" r="3" fill="#F5F6F8"/>
+<path d="M56 60 Q65 49 79 47" stroke="#FFFFFF" stroke-width="3" fill="none" opacity="0.45" stroke-linecap="round"/>
+</svg>

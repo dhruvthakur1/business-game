@@ -1,0 +1,29 @@
+{
+  "name": "mercantile-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "db:start": "node scripts/devdb.mjs start",
+    "db:stop": "node scripts/devdb.mjs stop",
+    "migrate": "tsx src/migrate.ts",
+    "seed": "tsx src/seed.ts",
+    "reset": "tsx src/migrate.ts --reset && tsx src/seed.ts",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fastify": "4.28.1",
+    "pg": "8.13.0",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "22.7.4",
+    "@types/pg": "8.11.10",
+    "tsx": "4.19.1",
+    "typescript": "5.6.2",
+    "vitest": "2.1.2"
+  }
+}

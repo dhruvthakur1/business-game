@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Onboarding tutorial</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 32px; border-bottom: 1px solid #1E242E">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="32" height="32" viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="10" fill="#F2B33D"/><path d="M11 32V14l11 9 11-9v18" stroke="#1A1405" stroke-width="3.4" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <span class="disp" style="font-size: 19px; font-weight: 700">Mercantile</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap">
+      <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; background: #151A22; border: 1px solid #252C38">
+        <span style="font-size: 12px; color: #9AA4B2">Cash</span>
+        <span class="mono" style="font-size: 14px; font-weight: 600; color: #F2B33D">{{ cash }} CR</span>
+      </div>
+      <a href="HQ.dc.html" style="font-size: 14px; color: #9AA4B2; text-decoration: none">Skip tutorial</a>
+    </div>
+  </header>
+
+  <div style="flex: 1; width: 100%; max-width: 1240px; box-sizing: border-box; margin: 0 auto; padding: 40px 32px 56px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <main style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <span class="mono" style="font-size: 13px; color: #F2B33D">STEP {{ stepNo }} OF 5</span>
+        <h1 class="disp" style="margin: 0; font-size: 40px; font-weight: 700; letter-spacing: -1px; line-height: 1.1">{{ title }}</h1>
+        <p style="margin: 0; font-size: 17px; color: #9AA4B2; line-height: 1.55; max-width: 640px">{{ lead }}</p>
+      </div>
+
+      <sc-if value="{{ s0 }}" hint-placeholder-val="{{ true }}">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+          <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #9AA4B2">Company name
+            <input value="{{ name }}" onChange="{{ setName }}" maxlength="28" placeholder="e.g. Northwind Holdings" style="height: 52px; box-sizing: border-box; border: 1px solid #343C4A; border-radius: 12px; background: #0B0E13; color: #E8EAED; padding: 0 16px; font: 500 18px Inter, sans-serif">
+          </label>
+          <span style="font-size: 13px; color: #9AA4B2">Shown on the exchange, in leagues and on your storefront. You keep it even if you go bankrupt.</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
+        <div role="radiogroup" aria-label="Home region" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
+          <sc-for list="{{ regions }}" as="r" hint-placeholder-count="4">
+            <button role="radio" aria-checked="{{ r.on }}" onClick="{{ r.pick }}" style="text-align: left; min-height: 120px; padding: 18px; border-radius: 14px; border: 1.5px solid {{ r.border }}; background: {{ r.bg }}; color: #E8EAED; cursor: pointer; display: flex; flex-direction: column; gap: 6px; font-family: Inter, sans-serif">
+              <span style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><span class="disp" style="font-size: 20px; font-weight: 600">{{ r.name }}</span><span style="font-size: 11px; font-weight: 700; color: #F2B33D">{{ r.tag }}</span></span>
+              <span style="font-size: 14px; color: #C4CBD5">{{ r.bonus }}</span>
+              <span style="font-size: 12px; color: #9AA4B2">{{ r.note }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-wrap: wrap; gap: 16px">
+          <div style="flex: 1 1 300px; background: #12161D; border: 1.5px solid #F2B33D; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+            <div style="background: #0F1319; display: flex; justify-content: center; padding-top: 8px"><img src="/_blob/529d4d4192c303e53b3f03491d8bc1ae" alt="Grain Farm" style="width: 240px; height: 216px"></div>
+            <div style="padding: 18px; display: flex; flex-direction: column; gap: 8px">
+              <div style="display: flex; justify-content: space-between; align-items: center"><strong class="disp" style="font-size: 20px; font-weight: 600">Grain Farm</strong><span style="font-size: 11px; font-weight: 700; color: #F2B33D">RECOMMENDED</span></div>
+              <span style="font-size: 14px; color: #9AA4B2">60 seeds + 20 fertilizer → 100 wheat every 4h · about +914 CR/day · pays back in about 33 days</span>
+              <button onClick="{{ buyFarm }}" disabled="{{ bought }}" style="height: 48px; border: 0; border-radius: 10px; background: {{ buyBg }}; color: {{ buyFg }}; font: 700 15px Inter, sans-serif; cursor: pointer; margin-top: 6px">{{ buyLabel }}</button>
+            </div>
+          </div>
+          <div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 12px">
+            <div style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 16px; display: flex; gap: 12px; align-items: center; opacity: 0.7"><img src="/_blob/0714017a98efa55a52afd11fc9f2ead9" alt="" style="width: 80px; height: 72px"><div style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 15px">Flour Mill · 40,000</strong><span style="font-size: 12px; color: #9AA4B2">Build next, once you have wheat</span></div></div>
+            <div style="background: #12161D; border: 1px solid #252C38; border-radius: 14px; padding: 16px; display: flex; gap: 12px; align-items: center; opacity: 0.7"><img src="/_blob/0902524cb342bc9e2e6d1ea052f25d04" alt="" style="width: 80px; height: 72px"><div style="display: flex; flex-direction: column; gap: 4px"><strong style="font-size: 15px">Bakery · 40,000</strong><span style="font-size: 12px; color: #9AA4B2">The starter loan helps you finish the chain</span></div></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px"><strong class="disp" style="font-size: 20px; font-weight: 600">NPC farm supply</strong><span style="font-size: 13px; color: #9AA4B2">Fixed prices · always in stock</span></div>
+          <div class="mono" style="display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+            <div style="display: flex; justify-content: space-between; padding: 12px 14px; background: #181D26; border-radius: 10px"><span style="font-family: Inter, sans-serif">Seeds · 60 × 1.20</span><span>72.00</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 12px 14px; background: #181D26; border-radius: 10px"><span style="font-family: Inter, sans-serif">Fertilizer · 20 × 4.00</span><span>80.00</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 14px; font-size: 16px; font-weight: 600"><span style="font-family: Inter, sans-serif">Total for one cycle</span><span style="color: #F2B33D">152.00 CR</span></div>
+          </div>
+          <button onClick="{{ buyInputs }}" disabled="{{ hasInputs }}" style="height: 48px; border: 0; border-radius: 10px; background: {{ inBg }}; color: {{ inFg }}; font: 700 15px Inter, sans-serif; cursor: pointer">{{ inLabel }}</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center">
+          <img src="/_blob/529d4d4192c303e53b3f03491d8bc1ae" alt="Your Grain Farm" style="width: 220px; height: 198px">
+          <div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px">
+              <span style="background: #2A2318; color: #D2B48C; padding: 8px 12px; border-radius: 8px">60 seeds + 20 fertilizer</span>
+              <span style="color: #9AA4B2">→</span>
+              <span style="background: #13261A; color: #8ED692; padding: 8px 12px; border-radius: 8px">100 wheat</span>
+            </div>
+            <div style="height: 10px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: {{ jobPct }}; height: 100%; background: #F2B33D"></div></div>
+            <span class="mono" style="font-size: 13px; color: #9AA4B2">{{ jobNote }}</span>
+            <button onClick="{{ start }}" disabled="{{ started }}" style="height: 52px; border: 0; border-radius: 12px; background: {{ stBg }}; color: {{ stFg }}; font: 700 16px Inter, sans-serif; cursor: pointer">{{ stLabel }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ finished }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #12291E; border: 1px solid #1F4A33; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+          <strong style="font-size: 16px; color: #6FD3A6">You're in business.</strong>
+          <span style="font-size: 14px; color: #C4CBD5; line-height: 1.55">Come back when the harvest lands to sell wheat to NPC buyers. Next up: build a mill, take the 20,000 CR starter loan at Lv 2, and join the Newcomer Cup.</span>
+          <a href="HQ.dc.html" style="align-self: flex-start; display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 10px; background: #F2B33D; color: #1A1405; font-weight: 700; text-decoration: none">Go to Headquarters</a>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+        <button onClick="{{ back }}" disabled="{{ atStart }}" style="height: 48px; padding: 0 20px; border: 1px solid #343C4A; border-radius: 10px; background: #181D26; color: {{ backFg }}; font: 600 15px Inter, sans-serif; cursor: pointer">Back</button>
+        <sc-if value="{{ showNext }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ next }}" disabled="{{ cantNext }}" style="height: 48px; padding: 0 24px; border: 0; border-radius: 10px; background: {{ nextBg }}; color: {{ nextFg }}; font: 700 15px Inter, sans-serif; cursor: pointer">Continue</button>
+        </sc-if>
+      </div>
+    </main>
+
+    <aside aria-label="First-day checklist" style="flex: 1 1 300px; min-width: 0; background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline"><strong class="disp" style="font-size: 18px; font-weight: 600">First day</strong><span class="mono" style="font-size: 13px; color: #9AA4B2">{{ doneCount }} / 6</span></div>
+      <div style="height: 8px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: {{ donePct }}; height: 100%; background: #F2B33D"></div></div>
+      <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+        <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="6">
+          <li style="display: flex; gap: 10px; align-items: center; min-height: 36px; font-size: 14px; color: {{ c.fg }}">
+            <span style="width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: {{ c.dotBg }}; color: #0B0E13; border: 1.5px solid {{ c.dotBorder }}">{{ c.mark }}</span>{{ c.label }}
+          </li>
+        </sc-for>
+      </ul>
+      <div style="background: #181D26; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #5AA9FF">Tip</span>
+        <span style="font-size: 13px; color: #C4CBD5; line-height: 1.5">{{ tip }}</span>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 0, name: '', region: 'north', bought: false, inputs: false, started: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    const cash = 100000 - (s.bought ? 30000 : 0) - (s.inputs ? 152 : 0);
+    const STEPS = [
+      ['Name your company', 'Every empire starts with a name. You have 100,000 CR of welcome capital to spend.', 'Pick something you will be happy to see on a leaderboard.'],
+      ['Choose a home region', 'Your first 12 plots are here. Shipping inside a region takes 1 hour; between regions, 4 hours plus freight.', 'North is the easiest start: its +10% farm yield helps the food chain.'],
+      ['Buy your first building', 'Farms are cheap, fast and supply everyone else. Buildings run one 4-hour job at a time.', 'Long-term, the mill and bakery earn more. The farm feeds them.'],
+      ['Stock up on inputs', 'Production reserves inputs from your warehouse when a job starts. Buy one cycle from the NPC vendor.', 'Later, other players may sell seeds cheaper on the exchange.'],
+      ['Start your first harvest', 'Press start and the clock runs while you are away. No need to keep the game open.', 'Collect from Headquarters when the crate badge appears.']
+    ];
+    const regionData = [
+      ['north', 'North', 'Recommended', '+10% agriculture yield', 'Best for a food start'],
+      ['east', 'East', '', 'Mining bonus', 'Coal, iron, quarries'],
+      ['south', 'South', '', 'Ports & logistics', 'Cheaper freight hubs'],
+      ['west', 'West', '', 'Tech & finance', 'Wage index 1.3']
+    ];
+    const ready = [s.name.trim().length >= 3, true, s.bought, s.inputs, s.started];
+    const st = s.step;
+    const checks = [
+      ['Claim welcome capital', true],
+      ['Name your company', ready[0] && st > 0],
+      ['Choose a region', st > 1],
+      ['Buy a Grain Farm', s.bought],
+      ['Buy seeds & fertilizer', s.inputs],
+      ['Start the first cycle', s.started]
+    ];
+    const done = checks.filter(c => c[1]).length;
+    const btn = (on) => ({ bg: on ? '#F2B33D' : '#1C212A', fg: on ? '#1A1405' : '#6B7585' });
+    const nb = btn(ready[st]);
+    return {
+      cash: fmt(cash), stepNo: st + 1,
+      title: STEPS[st][0], lead: STEPS[st][1], tip: STEPS[st][2],
+      s0: st === 0, s1: st === 1, s2: st === 2, s3: st === 3, s4: st === 4,
+      name: s.name, setName: (e) => this.setState({ name: e.target.value }),
+      regions: regionData.map(([id, name, tag, bonus, note]) => ({ name, tag, bonus, note, on: id === s.region,
+        border: id === s.region ? '#F2B33D' : '#343C4A', bg: id === s.region ? '#2B2312' : '#12161D',
+        pick: () => this.setState({ region: id }) })),
+      bought: s.bought, buyFarm: () => this.setState({ bought: true }),
+      buyBg: btn(!s.bought).bg, buyFg: btn(!s.bought).fg,
+      buyLabel: s.bought ? 'Bought · placed on plot N-01' : 'Buy for 30,000 CR',
+      hasInputs: s.inputs, buyInputs: () => this.setState({ inputs: true }),
+      inBg: btn(!s.inputs).bg, inFg: btn(!s.inputs).fg,
+      inLabel: s.inputs ? 'In your warehouse' : 'Buy for 152 CR',
+      started: s.started, start: () => this.setState({ started: true }),
+      stBg: btn(!s.started).bg, stFg: btn(!s.started).fg,
+      stLabel: s.started ? 'Growing…' : 'Start production',
+      jobPct: s.started ? '2%' : '0%',
+      jobNote: s.started ? 'Harvest lands in 3h 59m' : 'Takes 4 hours · inputs reserved at start',
+      finished: s.started,
+      showNext: st < 4,
+      cantNext: !ready[st], nextBg: nb.bg, nextFg: nb.fg,
+      next: () => { if (ready[st] && st < 4) this.setState({ step: st + 1 }); },
+      atStart: st === 0, backFg: st === 0 ? '#6B7585' : '#E8EAED',
+      back: () => { if (st > 0) this.setState({ step: st - 1 }); },
+      doneCount: done, donePct: Math.round(done / 6 * 100) + '%',
+      checklist: checks.map(([label, ok]) => ({ label, mark: ok ? '✓' : '',
+        dotBg: ok ? '#3FBF7F' : 'transparent', dotBorder: ok ? '#3FBF7F' : '#343C4A', fg: ok ? '#E8EAED' : '#9AA4B2' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

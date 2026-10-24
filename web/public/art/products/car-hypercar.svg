@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150">
+<defs>
+<linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4C7BF0"/><stop offset="1" stop-color="#122557"/></linearGradient>
+<radialGradient id="hglow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#6FF0FF" stop-opacity="0.35"/><stop offset="1" stop-color="#6FF0FF" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="100" cy="131" rx="96" ry="8" fill="url(#hglow)"/>
+<ellipse cx="100" cy="130" rx="90" ry="5" fill="#000" opacity="0.35"/>
+<path d="M27 96 L31 82 M37 96 L39 83" stroke="#0E1626" stroke-width="3"/>
+<path d="M10 78 L46 80 L46 85 L12 85 Z" fill="#0E1626"/>
+<path d="M10 114 Q12 100 28 96 L68 90 Q94 72 118 71 Q140 71 160 84 L190 94 Q198 98 196 108 L192 114 Z" fill="url(#hg)"/>
+<path d="M40 97 Q100 84 182 95" stroke="#A9C2FF" stroke-width="1.5" fill="none" opacity="0.8"/>
+<path d="M92 88 Q106 76 120 76 Q134 76 146 86 L128 90 Z" fill="#0E1626"/>
+<path d="M100 85 L110 79" stroke="#3F5A8C" stroke-width="2"/>
+<path d="M118 99 L150 96" stroke="#6FF0FF" stroke-width="1.6" stroke-linecap="round"/>
+<path d="M12 108 L194 108 L192 114 L10 114 Z" fill="#0E1626"/>
+<path d="M176 96 L194 100" stroke="#6FF0FF" stroke-width="2.6" stroke-linecap="round"/>
+<path d="M12 100 L26 98" stroke="#FF4D6D" stroke-width="2.6" stroke-linecap="round"/>
+<circle cx="44" cy="114" r="16" fill="#1C2233"/>
+<circle cx="158" cy="114" r="16" fill="#1C2233"/>
+<circle cx="44" cy="114" r="13" fill="#0B0C10"/>
+<circle cx="158" cy="114" r="13" fill="#0B0C10"/>
+<circle cx="44" cy="114" r="9.5" fill="#D4A64A"/>
+<circle cx="158" cy="114" r="9.5" fill="#D4A64A"/>
+<circle cx="44" cy="114" r="5.5" fill="#7A5A1C"/>
+<circle cx="158" cy="114" r="5.5" fill="#7A5A1C"/>
+<path d="M44 104.5 V123.5 M34.5 114 H53.5 M37.3 107.3 L50.7 120.7 M50.7 107.3 L37.3 120.7 M158 104.5 V123.5 M148.5 114 H167.5 M151.3 107.3 L164.7 120.7 M164.7 107.3 L151.3 120.7" stroke="#F6D88A" stroke-width="1.3"/>
+<path d="M70 34 L71.5 38.5 L76 40 L71.5 41.5 L70 46 L68.5 41.5 L64 40 L68.5 38.5 Z M150 26 L151.8 31.2 L157 33 L151.8 34.8 L150 40 L148.2 34.8 L143 33 L148.2 31.2 Z M180 56 L181 59 L184 60 L181 61 L180 64 L179 61 L176 60 L179 59 Z" fill="#F6D88A"/>
+</svg>

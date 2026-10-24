@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Product designer and brands</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0B0E13}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.disp{font-family:'Space Grotesk',Inter,sans-serif}
+a{color:#5AA9FF}a:hover{color:#8CC4FF}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #0B0E13; color: #E8EAED; font-family: Inter, system-ui, sans-serif; display: flex; flex-wrap: wrap">
+  <div style="flex: 1 1 240px">
+    <dc-import name="Sidebar" active="design" hint-size="100%,1100px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 0 32px 48px; display: flex; flex-direction: column; gap: 24px">
+    <dc-import name="TopBar" title="Product designer" subtitle="Pick a template, choose materials, put your name on it" hint-size="100%,72px"></dc-import>
+
+    <ol aria-label="Steps" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px">
+      <li style="font-size: 13px; padding: 8px 12px; border-radius: 999px; background: #151A22; border: 1px solid #252C38"><span class="mono" style="color: #F2B33D">1</span> Template</li>
+      <li style="font-size: 13px; padding: 8px 12px; border-radius: 999px; background: #151A22; border: 1px solid #252C38"><span class="mono" style="color: #F2B33D">2</span> Materials</li>
+      <li style="font-size: 13px; padding: 8px 12px; border-radius: 999px; background: #151A22; border: 1px solid #252C38"><span class="mono" style="color: #F2B33D">3</span> Variant tier</li>
+      <li style="font-size: 13px; padding: 8px 12px; border-radius: 999px; background: #151A22; border: 1px solid #252C38"><span class="mono" style="color: #F2B33D">4</span> Brand</li>
+      <li style="font-size: 13px; padding: 8px 12px; border-radius: 999px; background: #151A22; border: 1px solid #252C38"><span class="mono" style="color: #F2B33D">5</span> Value check</li>
+    </ol>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <div style="flex: 3 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">1 · Template</h2>
+          <div role="radiogroup" aria-label="Template" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px">
+            <sc-for list="{{ templates }}" as="t" hint-placeholder-count="3">
+              <button role="radio" aria-checked="{{ t.on }}" onClick="{{ t.pick }}" style="text-align: left; min-height: 72px; padding: 14px; border-radius: 12px; border: 1.5px solid {{ t.border }}; background: {{ t.bg }}; color: #E8EAED; cursor: pointer; display: flex; flex-direction: column; gap: 4px; font-family: Inter, sans-serif">
+                <span style="font-size: 15px; font-weight: 600">{{ t.label }}</span>
+                <span style="font-size: 12px; color: #9AA4B2">{{ t.building }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px">
+            <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">2 · Materials</h2>
+            <span style="font-size: 13px; color: #9AA4B2">Only options allowed by the template · cost per unit at reference price</span>
+          </div>
+          <sc-for list="{{ slots }}" as="s" hint-placeholder-count="4">
+            <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+              <legend style="font-size: 13px; color: #9AA4B2; margin-bottom: 8px">{{ s.label }}</legend>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <sc-for list="{{ s.opts }}" as="o" hint-placeholder-count="3">
+                  <button aria-pressed="{{ o.on }}" onClick="{{ o.pick }}" style="min-height: 44px; padding: 0 14px; border-radius: 10px; border: 1.5px solid {{ o.border }}; background: {{ o.bg }}; color: #E8EAED; cursor: pointer; display: flex; align-items: center; gap: 10px; font: 500 14px Inter, sans-serif">
+                    {{ o.name }}<span class="mono" style="font-size: 12px; color: #9AA4B2">{{ o.cost }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </fieldset>
+          </sc-for>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">3 · Variant tier</h2>
+          <div role="radiogroup" aria-label="Variant tier" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+            <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+              <button role="radio" aria-checked="{{ t.on }}" onClick="{{ t.pick }}" style="text-align: left; min-height: 72px; padding: 14px; border-radius: 12px; border: 1.5px solid {{ t.border }}; background: {{ t.bg }}; color: #E8EAED; cursor: pointer; display: flex; flex-direction: column; gap: 4px; font-family: Inter, sans-serif">
+                <span style="font-size: 15px; font-weight: 600">{{ t.label }}</span>
+                <span class="mono" style="font-size: 12px; color: #9AA4B2">{{ t.meta }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">4 · Brand</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end">
+            <label style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #9AA4B2">Brand name
+              <input value="{{ brand }}" onChange="{{ setBrand }}" maxlength="24" style="height: 44px; box-sizing: border-box; border: 1px solid #343C4A; border-radius: 10px; background: #0B0E13; color: #E8EAED; padding: 0 14px; font: 500 15px Inter, sans-serif">
+            </label>
+            <div role="radiogroup" aria-label="Logo" style="display: flex; gap: 8px">
+              <sc-for list="{{ logos }}" as="l" hint-placeholder-count="4">
+                <button role="radio" aria-checked="{{ l.on }}" aria-label="{{ l.name }}" onClick="{{ l.pick }}" style="width: 48px; height: 48px; border-radius: 12px; border: 1.5px solid {{ l.border }}; background: {{ l.bg }}; color: #F2B33D; cursor: pointer; display: flex; align-items: center; justify-content: center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ l.d }}" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <span style="font-size: 13px; color: {{ nameColor }}">{{ nameNote }}</span>
+        </div>
+      </div>
+
+      <div style="flex: 2 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column">
+          <div style="background: #181D26; padding: 24px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start">
+            <div style="align-self: stretch; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: {{ stageBg }}">
+              <img src="{{ art }}" alt="{{ productName }} preview" style="width: 190px; height: 190px; object-fit: contain">
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span style="width: 52px; height: 52px; border-radius: 14px; background: #2B2312; color: #F2B33D; display: flex; align-items: center; justify-content: center">
+                <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ logoD }}" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>
+              </span>
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #F2B33D">{{ brandShown }}</span>
+                <strong class="disp" style="font-size: 22px; font-weight: 600">{{ productName }}</strong>
+              </div>
+            </div>
+            <span style="font-size: 13px; color: #9AA4B2; line-height: 1.5">{{ spec }}</span>
+            <span class="mono" style="font-size: 12px; padding: 5px 10px; border-radius: 6px; background: #0F1F33; color: #8CC4FF">Made at: {{ building }}</span>
+          </div>
+          <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px">
+            <h2 class="disp" style="margin: 0; font-size: 18px; font-weight: 600">5 · Value check</h2>
+            <div class="mono" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+              <div style="display: flex; justify-content: space-between"><span style="font-family: Inter, sans-serif; color: #9AA4B2">Inputs per unit</span><span>{{ inputs }}</span></div>
+              <div style="display: flex; justify-content: space-between"><span style="font-family: Inter, sans-serif; color: #9AA4B2">Op cost per unit</span><span>{{ op }}</span></div>
+              <div style="display: flex; justify-content: space-between"><span style="font-family: Inter, sans-serif; color: #9AA4B2">Max value (inputs × {{ va }} + op)</span><span>{{ max }}</span></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 13px; color: #9AA4B2">Target wholesale price</span>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <button aria-label="Lower price" onClick="{{ dec }}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font: 600 18px Inter, sans-serif; cursor: pointer">−</button>
+                <span class="mono" style="flex: 1; height: 44px; display: flex; align-items: center; justify-content: center; border: 1.5px solid {{ priceBorder }}; border-radius: 10px; background: #0B0E13; font-size: 17px; font-weight: 600">{{ price }} CR</span>
+                <button aria-label="Raise price" onClick="{{ inc }}" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid #343C4A; background: #181D26; color: #E8EAED; font: 600 18px Inter, sans-serif; cursor: pointer">+</button>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: flex-start; border-radius: 12px; padding: 12px 14px; background: {{ checkBg }}">
+              <span style="font-size: 16px; font-weight: 700; color: {{ checkColor }}">{{ checkIcon }}</span>
+              <div style="display: flex; flex-direction: column; gap: 2px"><strong style="font-size: 14px; color: {{ checkColor }}">{{ checkTitle }}</strong><span style="font-size: 13px; color: #9AA4B2">{{ checkNote }}</span></div>
+            </div>
+            <button onClick="{{ save }}" disabled="{{ cantSave }}" style="height: 48px; border: 0; border-radius: 10px; background: {{ saveBg }}; color: {{ saveFg }}; font: 700 15px Inter, sans-serif; cursor: pointer">{{ saveLabel }}</button>
+          </div>
+        </div>
+
+        <div style="background: #12161D; border: 1px solid #252C38; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+          <h2 class="disp" style="margin: 0; font-size: 20px; font-weight: 600">Your brands</h2>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 14px"><strong>Northwind Atelier</strong><span class="mono">64 / 100</span></div>
+            <div style="height: 8px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 64%; height: 100%; background: #F2B33D"></div></div>
+            <span style="font-size: 12px; color: #9AA4B2">3 products · 41 unique buyers · +12.8% NPC price ceiling</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 14px"><strong>Fieldline Bakehouse</strong><span class="mono">41 / 100</span></div>
+            <div style="height: 8px; background: #252C38; border-radius: 999px; overflow: hidden"><div style="width: 41%; height: 100%; background: #F2B33D"></div></div>
+            <span style="font-size: 12px; color: #F0605A">No sales for 3 days · losing 1% a day</span>
+          </div>
+          <span style="font-size: 12px; color: #9AA4B2; line-height: 1.5">Reputation grows with units sold to unique buyers, average quality and on-time contracts. It adds up to +20% to the price NPC shoppers will pay.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tpl: 'watch', choice: { watch: {}, dress: {}, sneaker: {} }, tier: 'premium', price: null, brand: 'Northwind Atelier', logo: 0, saved: false };
+  }
+  renderVals() {
+    const T = {
+      watch: { label: 'Watch', building: 'Watchmaker · Lv 30', op: 125, va: 1.8, slots: [
+        ['case', 'Case', [['Steel', 40], ['Silver', 150], ['Gold', 240]]],
+        ['move', 'Movement', [['Quartz parts', 150], ['Automatic parts', 260]]],
+        ['crystal', 'Crystal', [['Mineral', 8], ['Sapphire', 25]]],
+        ['strap', 'Strap', [['Leather', 45], ['Steel bracelet', 60]]]] },
+      dress: { label: 'Dress', building: 'Garment Factory · Lv 8', op: 40, va: 1.8, slots: [
+        ['fabric', 'Fabric', [['Cotton', 30], ['Silk', 120], ['Synthetic', 20]]],
+        ['trim', 'Trim', [['Buttons', 2], ['Lace', 25], ['Embroidery', 60]]],
+        ['lining', 'Lining', [['None', 0], ['Satin', 18]]]] },
+      sneaker: { label: 'Sneaker', building: 'Garment Factory · Lv 8', op: 30, va: 1.8, slots: [
+        ['upper', 'Upper', [['Canvas', 25], ['Leather', 60]]],
+        ['sole', 'Sole', [['Rubber', 15], ['Foam', 22]]],
+        ['laces', 'Laces', [['Cotton', 2], ['Waxed', 5]]]] }
+    };
+    const TIERS = { basic: ['Basic', 1.0, 1.0], premium: ['Premium', 1.4, 1.7], luxury: ['Luxury', 2.2, 3.0] };
+    const LOGOS = [
+      ['Crown', 'M4 17l2-9 6 5 6-5 2 9z M4 20h16'],
+      ['Wheat', 'M12 21V8 M12 8c-3 0-4-2-4-5 3 0 4 2 4 5z M12 8c3 0 4-2 4-5-3 0-4 2-4 5z M12 14c-3 0-4-2-4-5 3 0 4 2 4 5z M12 14c3 0 4-2 4-5-3 0-4 2-4 5z'],
+      ['Gear', 'M12 8a4 4 0 100 8 4 4 0 000-8z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M5 19l2-2 M17 7l2-2'],
+      ['Star', 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z']
+    ];
+    const s = this.state, tpl = T[s.tpl], ch = s.choice[s.tpl];
+    const fmt = (n) => Math.round(n).toLocaleString('en-US');
+    const tier = TIERS[s.tier];
+    let base = 0;
+    const picked = [];
+    const slots = tpl.slots.map(([key, label, opts]) => {
+      const sel = ch[key] ?? 0;
+      base += opts[sel][1];
+      picked.push(opts[sel][0]);
+      return { label, opts: opts.map(([name, cost], i) => ({
+        name, cost: cost + ' CR', on: i === sel,
+        border: i === sel ? '#F2B33D' : '#343C4A', bg: i === sel ? '#2B2312' : '#181D26',
+        pick: () => this.setState({ choice: { ...s.choice, [s.tpl]: { ...ch, [key]: i } }, price: null, saved: false })
+      })) };
+    });
+    const inputs = base * tier[1];
+    const max = inputs * tpl.va + tpl.op;
+    const suggested = Math.round((inputs * 1.45 + tpl.op) / 5) * 5;
+    const price = s.price ?? suggested;
+    const step = Math.max(5, Math.round(max * 0.05 / 5) * 5);
+    const pass = price <= max;
+    const margin = price * 0.98 - inputs - tpl.op;
+    const name = (s.brand || '').trim();
+    const taken = name.toLowerCase() === 'ferro labs';
+    const nameOk = name.length >= 3 && !taken;
+    const canSave = pass && nameOk;
+    const B = (id) => '/_blob/' + id;
+    let art;
+    if (s.tpl === 'watch') {
+      const gold = (ch.case ?? 0) === 2;
+      art = s.tier === 'luxury' ? B(gold ? 'dca5b873f785165bf60e61ce2dfebce6' : 'eec79721aaac0b073a5ae02626df69dd')
+        : (gold ? B('375e358d690aa77432510fa36ce9ea5f') : (s.tier === 'premium' ? B('f3ec0297b11f7e02ab134f9af0d7d6de') : B('5e49122cdf87c1df672ebf6baff03a5f')));
+    } else if (s.tpl === 'dress') {
+      art = B('bc17dd3184bb42122c48b5f0271c8171');
+    } else {
+      art = B('0363ee098e9920584c91f09bd37a61ff');
+    }
+    const stageBg = s.tier === 'luxury' ? 'radial-gradient(circle at 50% 45%, #4A3A16, #11151B 72%)'
+      : (s.tier === 'premium' ? 'radial-gradient(circle at 50% 45%, #22314A, #11151B 72%)' : '#11151B');
+    return {
+      art, stageBg,
+      templates: Object.keys(T).map(k => ({ label: T[k].label, building: T[k].building, on: k === s.tpl,
+        border: k === s.tpl ? '#F2B33D' : '#343C4A', bg: k === s.tpl ? '#2B2312' : '#181D26',
+        pick: () => this.setState({ tpl: k, price: null, saved: false }) })),
+      slots,
+      tiers: Object.keys(TIERS).map(k => ({ label: TIERS[k][0], meta: '×' + TIERS[k][1] + ' inputs · ×' + TIERS[k][2] + ' price band', on: k === s.tier,
+        border: k === s.tier ? '#F2B33D' : '#343C4A', bg: k === s.tier ? '#2B2312' : '#181D26',
+        pick: () => this.setState({ tier: k, price: null, saved: false }) })),
+      brand: s.brand,
+      setBrand: (e) => this.setState({ brand: e.target.value, saved: false }),
+      logos: LOGOS.map(([n, d], i) => ({ name: n + ' logo', d, on: i === s.logo,
+        border: i === s.logo ? '#F2B33D' : '#343C4A', bg: i === s.logo ? '#2B2312' : '#181D26',
+        pick: () => this.setState({ logo: i }) })),
+      logoD: LOGOS[s.logo][1],
+      nameNote: taken ? 'That name is taken. Brand names are unique across the server.' : (name.length < 3 ? 'At least 3 characters.' : 'Available · checked for uniqueness and profanity'),
+      nameColor: nameOk ? '#3FBF7F' : '#F0605A',
+      brandShown: name || 'Your brand',
+      productName: tier[0] + ' ' + tpl.label,
+      spec: picked.join(' · '),
+      building: tpl.building,
+      inputs: fmt(inputs), op: fmt(tpl.op), va: tpl.va, max: fmt(max),
+      price: fmt(price),
+      inc: () => this.setState({ price: price + step, saved: false }),
+      dec: () => this.setState({ price: Math.max(step, price - step), saved: false }),
+      priceBorder: pass ? '#343C4A' : '#F0605A',
+      checkBg: pass ? '#12291E' : '#2A1515',
+      checkColor: pass ? '#3FBF7F' : '#F0605A',
+      checkIcon: pass ? '✓' : '!',
+      checkTitle: pass ? 'Passes value check' : 'Above the value cap',
+      checkNote: pass ? 'Margin ≈ ' + fmt(margin) + ' CR per unit after the 2% fee' : 'Lower the price or use richer materials. Max is ' + fmt(max) + ' CR.',
+      cantSave: !canSave,
+      saveBg: canSave ? '#F2B33D' : '#1C212A', saveFg: canSave ? '#1A1405' : '#6B7585',
+      saveLabel: s.saved ? 'Saved · recipe added to ' + tpl.building.split(' ·')[0] : 'Save product',
+      save: () => { if (canSave) this.setState({ saved: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

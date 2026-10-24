@@ -1,0 +1,36 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-24T12:10:00Z"},
+  "title": "Tycoon Game UI Design",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 2140, "title": "Design system"},
+    "Buildings.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 1640, "title": "Building models"},
+    "Landing.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 2140, "title": "Landing page", "expand": "fill", "is_interactive": true},
+    "HQ.dc.html": {"x": 0, "y": 2540, "w": 1440, "h": 1240, "title": "Headquarters", "expand": "fill", "is_interactive": true},
+    "Building.dc.html": {"x": 1520, "y": 2540, "w": 1440, "h": 1240, "title": "Building detail", "expand": "fill", "is_interactive": true},
+    "Market.dc.html": {"x": 3040, "y": 2540, "w": 1440, "h": 1240, "title": "Exchange", "expand": "fill", "is_interactive": true},
+    "Contracts.dc.html": {"x": 4560, "y": 2540, "w": 1440, "h": 1240, "title": "Contracts & RFQ", "expand": "fill", "is_interactive": true},
+    "Bank.dc.html": {"x": 0, "y": 4180, "w": 1440, "h": 1240, "title": "Bank", "expand": "fill", "is_interactive": true},
+    "League.dc.html": {"x": 1520, "y": 4180, "w": 1440, "h": 1240, "title": "Leagues & leaderboards", "expand": "fill", "is_interactive": true},
+    "Showroom.dc.html": {"x": 3040, "y": 4180, "w": 1440, "h": 1240, "title": "Showroom", "expand": "fill", "is_interactive": true},
+    "Mobile.dc.html": {"x": 4560, "y": 4180, "w": 390, "h": 844, "title": "Mobile HQ", "is_interactive": true},
+    "Products.dc.html": {"x": 6080, "y": 0, "w": 1440, "h": 2700, "title": "Product art"},
+    "Designer.dc.html": {"x": 0, "y": 7340, "w": 1440, "h": 1300, "title": "Product designer & brands", "expand": "fill", "is_interactive": true},
+    "Research.dc.html": {"x": 1520, "y": 7340, "w": 1440, "h": 1240, "title": "Research tree", "expand": "fill", "is_interactive": true},
+    "Contest.dc.html": {"x": 3040, "y": 7340, "w": 1440, "h": 1300, "title": "Contest detail", "expand": "fill", "is_interactive": true},
+    "Onboarding.dc.html": {"x": 4560, "y": 7340, "w": 1440, "h": 1000, "title": "Onboarding tutorial", "expand": "fill", "is_interactive": true},
+    "Sidebar.dc.html": {"x": 0, "y": 5820, "w": 248, "h": 1100, "title": "Sidebar (component)", "is_interactive": true},
+    "TopBar.dc.html": {"x": 328, "y": 5820, "w": 1180, "h": 72, "title": "Top bar (component)"}
+  },
+  "order": ["Main.dc.html", "Buildings.dc.html", "Landing.dc.html", "HQ.dc.html", "Building.dc.html", "Market.dc.html", "Contracts.dc.html", "Bank.dc.html", "League.dc.html", "Showroom.dc.html", "Mobile.dc.html", "Sidebar.dc.html", "TopBar.dc.html", "Designer.dc.html", "Research.dc.html", "Contest.dc.html", "Onboarding.dc.html", "Products.dc.html"],
+  "notes": {
+    "t1": {"x": 0, "y": -300, "text": "Foundations: system, buildings, landing, products", "kind": "title1", "maxW": 7520},
+    "t2": {"x": 0, "y": 2240, "text": "Operate: HQ, production, exchange, contracts", "kind": "title1", "maxW": 6000},
+    "t3": {"x": 0, "y": 3880, "text": "Finance, compete, show off", "kind": "title1", "maxW": 4950},
+    "t4": {"x": 0, "y": 5520, "text": "Shared components", "kind": "title1", "maxW": 1508},
+    "t5": {"x": 0, "y": 7040, "text": "Build, research, contests, first run", "kind": "title1", "maxW": 6000}
+  },
+  "designSystems": []
+}
