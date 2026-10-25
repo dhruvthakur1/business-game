@@ -9,6 +9,7 @@ import { toCents } from './ledger';
 import { npcSell } from './npc';
 import { buyBuilding, setBuildingDesign, startJob } from './production';
 import { createDesign } from './brands';
+import { companyAccount, systemAccount, transfer } from './ledger';
 
 /** Upserts products, building types and recipes from shared/catalog.ts. Safe to run repeatedly. */
 export async function upsertCatalog(db: Db) {
@@ -50,6 +51,7 @@ export async function seedWorld(db: Db) {
   const existing = await db.query("SELECT 1 FROM companies WHERE name = 'Northwind Holdings'");
   if (existing.rowCount) {
     await seedResearchAndBrands(db);
+    await seedWealth(db);
     console.log('World already seeded; catalog refreshed.');
     return;
   }
@@ -122,6 +124,7 @@ export async function seedWorld(db: Db) {
     });
   });
   await seedResearchAndBrands(db);
+  await seedWealth(db);
   console.log('Seeded catalog, 4 market makers and the Northwind Holdings demo company.');
 }
 
@@ -157,6 +160,23 @@ export async function seedResearchAndBrands(db: Db) {
     const loaf = await createDesign(tx, nw.id, { brandId: bakehouse, templateId: 'loaf', slots: { grain: 1, finish: 1 }, tier: 'premium', priceCents: 4400 });
     const bakery = (await tx.query<{ id: string }>("SELECT id FROM buildings WHERE company_id = $1 AND building_type_id = 'bakery' LIMIT 1", [nw.id])).rows[0];
     if (bakery) await setBuildingDesign(tx, nw.id, bakery.id, loaf.productId);
+  });
+}
+
+/**
+ * Demo personal wealth for Northwind: 61,200 CR in the owner's wallet (opening balance), an economy hatch,
+ * a steel quartz watch and two wardrobe pieces, and a 900 CR/day salary. Skipped once Northwind owns any item.
+ */
+export async function seedWealth(db: Db) {
+  const nw = (await db.query<{ id: string }>("SELECT id FROM companies WHERE name = 'Northwind Holdings' AND NOT is_npc")).rows[0];
+  if (!nw) return;
+  if ((await db.query('SELECT 1 FROM personal_items WHERE company_id = $1', [nw.id])).rowCount) return;
+  await withTx(db, async (tx) => {
+    await transfer(tx, 'starting_capital', 'Owner savings (demo)', await systemAccount(tx, 'faucet:starting_capital'), await companyAccount(tx, nw.id, 'wallet'), toCents(61_200));
+    for (const [item, price] of [['car_economy', 2500], ['watch_quartz', 1500], ['wear_streetwear', 300], ['wear_sneakers', 5000]] as const) {
+      await tx.query('INSERT INTO personal_items (company_id, item_id, price_cents) VALUES ($1, $2, $3)', [nw.id, item, toCents(price)]);
+    }
+    await tx.query('UPDATE companies SET salary_cents = $2 WHERE id = $1', [nw.id, toCents(900)]);
   });
 }
 

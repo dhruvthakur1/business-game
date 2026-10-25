@@ -1,41 +1,122 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { api, ApiError, toCr } from '../api/client';
+import type { PayoutKind, WealthResponse } from '../api/types';
 import { TopBar } from '../components/AppShell';
-import { Card, ProgressBar, Segmented, StatTile } from '../components/ui';
-import { LADDERS, type Rung } from '../data/lifestyle';
-import { COMPANY } from '../data/mock';
-import { itemPrestige, maxDailySalary, personalIncomeTax } from '../lib/economy';
-import { num } from '../lib/format';
+import { Card, ProgressBar, Segmented, StatTile, Stepper } from '../components/ui';
+import { personalIncomeTax } from '../lib/economy';
+import { dec, num } from '../lib/format';
 import { useGame } from '../state/game';
+import { CATEGORY_RULES, itemUpkeep, LADDERS, PAY_RULES, TAX_FREE_ALLOWANCE, type LuxuryItem } from '../../../shared/wealth';
 
-const DAILY_DRAW = 7200;
-const INFLOWS_30D = 38_900;
-const DIVIDEND_AVAILABLE = 22_400;
+const REFRESH_MS = 10_000;
 
-const priceLabel = (r: Rung) => (r.price === null ? 'auction' : r.price === 0 ? 'renting' : `${num(r.price)} CR`);
+const priceLabel = (i: LuxuryItem) => (i.price === null ? 'auction only' : i.price === 0 ? 'free' : `${num(i.price)} CR`);
+
+/** Tax (CR) on a new gross payout given what was already paid out in the 30-day window. Mirrors server/src/wealth.ts. */
+function taxOn(priorCr: number, grossCr: number, kind: PayoutKind) {
+  const income = personalIncomeTax(priorCr + grossCr) - personalIncomeTax(priorCr);
+  return Math.min(grossCr, income + (kind === 'withdrawal' ? grossCr * PAY_RULES.withdrawalTax : 0));
+}
+
+const TROPHY_TONE: Record<string, [string, string]> = {
+  promotion: ['var(--silver-bg)', 'var(--silver-fg)'],
+  contest: ['var(--t1-bg)', 'var(--t1-fg)'],
+  relegation: ['var(--line)', 'var(--text-soft)'],
+};
 
 export function Showroom() {
-  const { wallet, owned, buyItem, notify } = useGame();
+  const { act, notify } = useGame();
+  const [data, setData] = useState<WealthResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [ladderId, setLadderId] = useState(LADDERS[0].id);
-  const [declared, setDeclared] = useState(false);
+  const [payKind, setPayKind] = useState<'dividend' | 'withdrawal'>('dividend');
+  const [amount, setAmount] = useState<number | null>(null);
+  const [salary, setSalary] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setData(await api<WealthResponse>('/wealth'));
+      setError(null);
+    } catch (err) {
+      if (err instanceof ApiError) setError(err.message);
+      else throw err;
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    const t = window.setInterval(() => void load(), REFRESH_MS);
+    return () => window.clearInterval(t);
+  }, [load]);
+
+  const run = async <T,>(fn: () => Promise<T>) => {
+    setBusy(true);
+    const res = await act(fn);
+    await load();
+    setBusy(false);
+    return res;
+  };
+
+  if (!data) {
+    return (
+      <>
+        <TopBar title="Showroom" subtitle="Your personal wealth, kept apart from the company" />
+        <p className={error ? 'loss' : 'muted'}>{error ?? 'Loading your wallet…'}</p>
+      </>
+    );
+  }
+
+  const wallet = toCr(data.walletCents);
+  const owned = new Map(data.owned.map((o) => [o.itemId, o]));
   const ladder = LADDERS.find((l) => l.id === ladderId)!;
-  const ownedCount = Math.min(owned[ladder.id] ?? 0, ladder.rungs.length);
-  const next = ladder.rungs[ownedCount];
+  const nextIdx = ladder.items.findIndex((i) => !owned.has(i.id));
+  const next = nextIdx >= 0 ? ladder.items[nextIdx] : null;
+  const { limits } = data;
+  const cap = toCr(limits.salaryCapCents);
+  // What actually reaches the wallet each day: the salary setting, capped by today's profit-based limit.
+  const dailyDraw = limits.blocked ? 0 : Math.min(toCr(data.salaryCents), cap);
+  const prior = toCr(data.inflows30dCents);
 
-  const prestige = Math.round(
-    LADDERS.reduce((sum, l) => sum + l.rungs.slice(0, owned[l.id] ?? 0).reduce((s, r) => s + (r.price ? itemPrestige(r.price) : 0), 0), 0) + 400,
-  );
-  const upkeep = LADDERS.find((l) => l.id === 'garage')!.rungs.slice(0, owned.garage ?? 0).reduce((s, r) => s + (r.price ?? 0) * 0.0002, 0);
+  const maxPay = toCr(payKind === 'dividend' ? limits.dividendAvailableCents : limits.withdrawableCents);
+  const payAmount = Math.max(0, Math.min(maxPay, amount ?? Math.floor(maxPay)));
+  const payStep = Math.max(100, Math.round(maxPay / 10 / 100) * 100);
+  const payTax = taxOn(prior, payAmount, payKind);
 
-  const salary = maxDailySalary(COMPANY.avgDailyOpProfit);
-  const taxFreeLeft = Math.max(0, 50_000 - INFLOWS_30D);
+  const salaryValue = salary ?? toCr(data.salaryCents);
+  const salaryStep = Math.max(10, Math.round(cap / 10 / 10) * 10);
+  const salaryChanged = Math.round(salaryValue * 100) !== data.salaryCents;
+
+  const buy = async (item: LuxuryItem) => {
+    const res = await run(() => api('/wealth/items', { body: { itemId: item.id } }));
+    if (res) notify(`${item.name} is yours`, 'Shown in your showroom and on your profile.');
+  };
+  const sell = async (item: LuxuryItem) => {
+    const res = await run(() => api<{ proceedsCents: number }>(`/wealth/items/${item.id}/sell`, { body: {} }));
+    if (res) notify(`Sold ${item.name}`, `${dec(toCr(res.proceedsCents))} CR back in your wallet.`, 'info');
+  };
+  const pay = async () => {
+    const res = await run(() => api<{ netCents: number; taxCents: number }>(`/wealth/${payKind === 'dividend' ? 'dividend' : 'withdraw'}`, { body: { amountCents: Math.round(payAmount * 100) } }));
+    if (res) {
+      setAmount(null);
+      notify(payKind === 'dividend' ? 'Dividend paid' : 'Withdrawal made', `${dec(toCr(res.netCents))} CR reached your wallet after ${dec(toCr(res.taxCents))} CR tax.`);
+    }
+  };
+  const saveSalary = async () => {
+    const res = await run(() => api('/wealth/salary', { body: { salaryCents: Math.round(salaryValue * 100) } }));
+    if (res) {
+      setSalary(null);
+      notify('Salary set', salaryValue > 0 ? `${num(salaryValue)} CR a day, paid at each daily close.` : 'You are no longer paying yourself a salary.', 'info');
+    }
+  };
 
   return (
     <>
       <TopBar title="Showroom" subtitle="Your personal wealth, kept apart from the company" />
       <section className="grid-auto">
         <StatTile label="Personal wallet" value={num(wallet)} valueClass="goldtx" deltaTone="muted" delta={<span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Protected if the company goes into receivership</span>} />
-        <StatTile label="Prestige score" value={num(prestige)} deltaTone="muted" delta={<span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Log-scaled, so a curated set beats one huge buy</span>} />
-        <StatTile label="Daily upkeep on items" value={upkeep.toFixed(2)} deltaTone="muted" delta={<span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Unpaid upkeep stores an item, never seizes it</span>} />
+        <StatTile label="Prestige score" value={num(data.prestige)} deltaTone="muted" delta={<span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Log-scaled, so a curated set beats one huge buy · +100 per trophy</span>} />
+        <StatTile label="Daily upkeep on items" value={dec(toCr(data.upkeepPerDayCents))} deltaTone="muted" delta={<span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Paid from the wallet · unpaid upkeep stores an item, never seizes it</span>} />
       </section>
 
       <section className="split">
@@ -43,26 +124,31 @@ export function Showroom() {
           <Segmented label="Collection" value={ladderId} onChange={setLadderId} options={LADDERS.map((l) => ({ value: l.id, label: l.label }))} />
 
           {next ? (
-            <NextRung rung={next} wallet={wallet} onBuy={() => next.price && buyItem(ladder.id, next.name, next.price)} />
+            <NextRung item={next} wallet={wallet} dailyDraw={dailyDraw} busy={busy} onBuy={() => void buy(next)} />
           ) : (
-            <div className="inset"><strong>Ladder complete.</strong> <span className="muted">Limited editions appear here when they drop.</span></div>
+            <div className="inset"><strong>Collection complete.</strong> <span className="muted">Limited editions appear here when they drop.</span></div>
           )}
 
           <ol style={{ listStyle: 'none', margin: 0, padding: 0 }} className="grid-auto-sm">
-            {ladder.rungs.map((r, i) => {
-              const isOwned = i < ownedCount;
-              const isNext = i === ownedCount;
-              const canBuy = isNext && r.price !== null && r.price > 0 && wallet >= r.price;
-              const state = isOwned ? 'Owned' : isNext ? (canBuy ? 'Affordable now' : 'Next goal') : 'Locked';
+            {ladder.items.map((item, i) => {
+              const mine = owned.get(item.id);
+              const isNext = i === nextIdx;
+              const canBuy = isNext && item.price !== null && item.price > 0 && wallet >= item.price;
+              const state = mine ? (mine.stored ? 'In storage' : 'Owned') : isNext ? (item.price === null ? 'Auction only' : canBuy ? 'Affordable now' : 'Next goal') : 'Locked';
               return (
-                <li key={r.name} className="stack-sm" style={{ borderRadius: 14, padding: 16, background: isNext ? 'var(--gold-wash)' : 'var(--raised)', border: `1.5px solid ${isNext ? 'var(--gold-edge)' : 'transparent'}`, opacity: isOwned || isNext ? 1 : 0.6 }}>
+                <li key={item.id} className="stack-sm" style={{ borderRadius: 14, padding: 16, background: isNext ? 'var(--gold-wash)' : 'var(--raised)', border: `1.5px solid ${isNext ? 'var(--gold-edge)' : 'transparent'}`, opacity: mine || isNext ? 1 : 0.6 }}>
                   <div className="art-stage" style={{ height: 96, borderRadius: 10 }}>
-                    {r.art && <img src={r.art} alt="" style={{ width: '100%', height: 90, objectFit: 'contain' }} />}
+                    {item.art && <img src={item.art} alt="" style={{ width: '100%', height: 90, objectFit: 'contain', opacity: mine?.stored ? 0.4 : 1 }} />}
                   </div>
                   <span className="mono muted" style={{ fontSize: 11 }}>RUNG {i + 1}</span>
-                  <strong style={{ fontSize: 15, minHeight: 40 }}>{r.name}</strong>
-                  <span className="mono">{priceLabel(r)}</span>
-                  <span className="small" style={{ fontWeight: 700, color: isOwned ? 'var(--gain)' : isNext ? 'var(--gold)' : 'var(--muted)' }}>{state}</span>
+                  <strong style={{ fontSize: 15, minHeight: 40 }}>{item.name}</strong>
+                  <span className="mono">{priceLabel(item)}</span>
+                  <span className="small" style={{ fontWeight: 700, color: mine?.stored ? 'var(--loss)' : mine ? 'var(--gain)' : isNext ? 'var(--gold)' : 'var(--muted)' }}>{state}</span>
+                  {mine && item.price ? (
+                    <button type="button" className="btn btn-ghost" style={{ alignSelf: 'flex-start', padding: '4px 0' }} disabled={busy} onClick={() => void sell(item)}>
+                      Sell for {num(item.price * CATEGORY_RULES[item.category].buyback)}
+                    </button>
+                  ) : null}
                 </li>
               );
             })}
@@ -72,33 +158,80 @@ export function Showroom() {
 
         <div className="side stack" style={{ gap: 24 }}>
           <Card title="Pay yourself">
-            <div className="stack-sm" style={{ gap: 10 }}>
-              <div className="row-between"><span className="muted">Daily salary</span><span className="mono">{num(salary)} / day <span className="small muted">(max)</span></span></div>
-              <div className="row-between"><span className="muted">Dividend available</span><span className="mono">{declared ? '0' : num(DIVIDEND_AVAILABLE)}</span></div>
-              <div className="row-between"><span className="muted">30-day inflows</span><span className="mono">{num(INFLOWS_30D + (declared ? DIVIDEND_AVAILABLE : 0))}</span></div>
-              <div className="row-between"><span className="muted">Tax on this dividend</span><span className="mono">{num(personalIncomeTax(INFLOWS_30D + DIVIDEND_AVAILABLE) - personalIncomeTax(INFLOWS_30D))} CR</span></div>
+            {limits.blocked && <span className="loss small">{limits.blocked}</span>}
+            <div className="stack-sm" style={{ gap: 8 }}>
+              <div className="row-between"><span className="muted">7-day avg operating profit</span><span className="mono">{num(toCr(limits.avgOpProfit7dCents))} / day</span></div>
+              <div className="row-between"><span className="muted">Cash the company keeps</span><span className="mono">{num(toCr(limits.reserveCents))}</span></div>
+              <div className="row-between"><span className="muted">30-day payouts so far</span><span className="mono">{num(prior)}</span></div>
             </div>
-            <ProgressBar value={INFLOWS_30D / 50_000} color="var(--info)" label="Tax-free allowance used" />
-            <span className="small muted">{num(taxFreeLeft)} CR more this month before the 10% band starts. Owner withdrawals add a 10% early-withdrawal tax.</span>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={declared}
-              onClick={() => {
-                setDeclared(true);
-                const tax = personalIncomeTax(INFLOWS_30D + DIVIDEND_AVAILABLE) - personalIncomeTax(INFLOWS_30D);
-                notify('Dividend paid', `${num(DIVIDEND_AVAILABLE - tax)} CR reached your wallet after ${num(tax)} CR tax.`);
-              }}
-            >
-              {declared ? 'Dividend declared' : `Declare ${num(DIVIDEND_AVAILABLE)} dividend`}
+
+            <div className="field">
+              Daily salary <span className="small muted">(max {num(cap)}, 15% of avg profit)</span>
+              <Stepper
+                value={`${num(salaryValue)} CR / day`}
+                decLabel="Lower salary"
+                incLabel="Raise salary"
+                onDec={() => setSalary(Math.max(0, Math.min(salaryValue, cap) - salaryStep))}
+                onInc={() => setSalary(Math.min(cap, salaryValue + salaryStep))}
+              />
+            </div>
+            {!salaryChanged && toCr(data.salaryCents) > cap && (
+              <span className="small loss">Capped at {num(cap)} CR today: the company’s recent operating profit doesn’t support more.</span>
+            )}
+            <button type="button" className="btn btn-secondary" disabled={busy || !salaryChanged || salaryValue > cap} onClick={() => void saveSalary()}>
+              {salaryChanged ? `Set salary to ${num(salaryValue)} CR / day` : 'Paid at each daily close'}
             </button>
+
+            <Segmented label="Payout" value={payKind} onChange={(v) => { setPayKind(v as 'dividend' | 'withdrawal'); setAmount(null); }} options={[{ value: 'dividend', label: 'Dividend' }, { value: 'withdrawal', label: 'Withdrawal' }]} />
+            <div className="field">
+              {payKind === 'dividend' ? 'Dividend' : 'Withdrawal'} <span className="small muted">(up to {num(maxPay)})</span>
+              <Stepper
+                value={`${num(payAmount)} CR`}
+                decLabel="Less"
+                incLabel="More"
+                onDec={() => setAmount(Math.max(0, payAmount - payStep))}
+                onInc={() => setAmount(Math.min(maxPay, payAmount + payStep))}
+              />
+            </div>
+            {maxPay <= 0 && !limits.blocked && (
+              <span className="small muted">
+                {payKind === 'dividend'
+                  ? 'No profit left to distribute from the last 30 days.'
+                  : 'Company cash is at or below the 7-day reserve.'}
+              </span>
+            )}
+            <div className="row-between small"><span className="muted">Tax on this payout</span><span className="mono">{dec(payTax)} CR</span></div>
+            <ProgressBar value={Math.min(1, (prior + payAmount) / TAX_FREE_ALLOWANCE)} color="var(--info)" label="Tax-free allowance used" />
+            <span className="small muted">
+              {prior >= TAX_FREE_ALLOWANCE ? 'Tax-free allowance used up for this 30-day window.' : `${num(TAX_FREE_ALLOWANCE - prior)} CR more this month before the 10% band starts.`}
+              {payKind === 'dividend' ? ' Dividends are limited to the last 30 days’ operating profit, minus what you already took.' : ' Withdrawals add a 10% early-withdrawal tax.'}
+            </span>
+            <button type="button" className="btn btn-primary" disabled={busy || payAmount <= 0 || !!limits.blocked} onClick={() => void pay()}>
+              {payKind === 'dividend' ? `Declare ${num(payAmount)} dividend` : `Withdraw ${num(payAmount)}`}
+            </button>
+            {data.payouts.length > 0 && (
+              <div className="stack-sm" style={{ gap: 4 }}>
+                <span className="overline">Recent</span>
+                {data.payouts.slice(0, 4).map((p, i) => (
+                  <div key={i} className="row-between small">
+                    <span className="muted">{p.kind[0].toUpperCase() + p.kind.slice(1)}</span>
+                    <span className="mono">{dec(toCr(p.grossCents - p.taxCents))} <span className="muted">net</span></span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
           <Card title="Trophy cabinet">
-            <div className="row" style={{ gap: 10 }}>
-              <span className="chip" style={{ background: 'var(--bronze-bg)', color: 'var(--bronze-fg)', padding: '8px 12px', fontSize: 13 }}>Bronze → Silver · W38</span>
-              <span className="chip" style={{ background: 'var(--silver-bg)', color: 'var(--silver-fg)', padding: '8px 12px', fontSize: 13 }}>Silver → Gold · W41</span>
-              <span className="chip" style={{ background: 'var(--t1-bg)', color: 'var(--t1-fg)', padding: '8px 12px', fontSize: 13 }}>Newcomer Cup #2</span>
-            </div>
+            {data.trophies.length === 0 ? (
+              <span className="muted">No trophies yet. Win a weekly contest or get promoted in your league.</span>
+            ) : (
+              <div className="row" style={{ gap: 10 }}>
+                {data.trophies.map((t, i) => {
+                  const [bg, fg] = TROPHY_TONE[t.kind] ?? TROPHY_TONE.contest;
+                  return <span key={i} className="chip" style={{ background: bg, color: fg, padding: '8px 12px', fontSize: 13 }}>{t.title}</span>;
+                })}
+              </div>
+            )}
             <span className="small muted">Trophies can't be sold or traded.</span>
           </Card>
         </div>
@@ -107,30 +240,33 @@ export function Showroom() {
   );
 }
 
-function NextRung({ rung, wallet, onBuy }: { rung: Rung; wallet: number; onBuy: () => void }) {
-  const price = rung.price ?? 0;
+function NextRung({ item, wallet, dailyDraw, busy, onBuy }: { item: LuxuryItem; wallet: number; dailyDraw: number; busy: boolean; onBuy: () => void }) {
+  const price = item.price ?? 0;
   const progress = price > 0 ? Math.min(1, wallet / price) : 0;
   const gap = price - wallet;
+  const upkeep = itemUpkeep(item);
   const note =
-    rung.price === null
+    item.price === null
       ? 'Sold only at auction. Watch for the next drop.'
       : gap <= 0
-        ? 'You can buy this today. A player Luxury Store is usually cheaper than the NPC shop.'
-        : `${num(gap)} CR more · about ${Math.ceil(gap / DAILY_DRAW)} days at your current draw`;
+        ? `You can buy this today.${upkeep ? ` Upkeep ${dec(upkeep)} CR a day.` : ''}`
+        : dailyDraw > 0
+          ? `${num(gap)} CR more · about ${Math.ceil(gap / dailyDraw)} days at your salary`
+          : `${num(gap)} CR more · set a salary or declare a dividend to fill your wallet`;
   return (
     <div className="inset row" style={{ padding: 18, gap: 20, alignItems: 'center' }}>
-      {rung.art && (
+      {item.art && (
         <div style={{ width: 220, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 12, background: 'radial-gradient(circle at 50% 45%, #3a2e14, var(--sunken) 70%)' }}>
-          <img src={rung.art} alt={rung.name} style={{ width: 200, height: 150, objectFit: 'contain' }} />
+          <img src={item.art} alt={item.name} style={{ width: 200, height: 150, objectFit: 'contain' }} />
         </div>
       )}
       <div className="stack-sm" style={{ flex: '1 1 260px', gap: 10 }}>
         <div className="row-between small muted"><span>Next rung</span><span className="mono">{Math.round(progress * 100)}%</span></div>
-        <span className="disp" style={{ fontSize: 26, fontWeight: 600 }}>{rung.name}{rung.price ? ` · ${num(rung.price)} CR` : ''}</span>
-        <ProgressBar value={progress} size="thick" label={`Savings toward ${rung.name}`} />
+        <span className="disp" style={{ fontSize: 26, fontWeight: 600 }}>{item.name}{item.price ? ` · ${num(item.price)} CR` : ''}</span>
+        <ProgressBar value={progress} size="thick" label={`Savings toward ${item.name}`} />
         <span className="muted">{note}</span>
-        {rung.price !== null && rung.price > 0 && gap <= 0 && (
-          <button type="button" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} onClick={onBuy}>Buy for {num(price)} CR</button>
+        {item.price !== null && item.price > 0 && gap <= 0 && (
+          <button type="button" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={busy} onClick={onBuy}>Buy for {num(price)} CR</button>
         )}
       </div>
     </div>

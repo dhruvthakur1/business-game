@@ -25,7 +25,6 @@ export const COMPANY = {
 };
 
 export const START_CASH = 248_310;
-export const START_WALLET = 61_200;
 
 export const BUILDINGS: Building[] = [
   { id: 'b1', typeId: 'farm', name: 'Grain Farm 1', level: 4, status: 'ready', progress: 1, minutesLeft: 0, plot: { col: 0, row: 0 },
@@ -40,16 +39,6 @@ export const BUILDINGS: Building[] = [
   { id: 'b8', typeId: 'steel_mill', name: 'Steel Mill', level: 1, status: 'ready', progress: 1, minutesLeft: 0, plot: { col: 1, row: 2 },
     readyOutput: { productId: 'steel', qty: 60, quality: 0 }, netPerDay: 1547 },
   { id: 'b9', typeId: 'solar', name: 'Solar Farm', level: 1, status: 'construction', progress: 0.62, minutesLeft: 410, plot: { col: 2, row: 2 }, netPerDay: 0 },
-];
-
-export const CASHFLOW = [
-  { day: 'D41', revenue: 9.8, costs: 6.9 },
-  { day: 'D42', revenue: 10.4, costs: 7.1 },
-  { day: 'D43', revenue: 11.1, costs: 7.0 },
-  { day: 'D44', revenue: 10.9, costs: 7.4 },
-  { day: 'D45', revenue: 12.6, costs: 7.2 },
-  { day: 'D46', revenue: 13.4, costs: 7.6 },
-  { day: 'D47', revenue: 14.2, costs: 7.3 },
 ];
 
 export const ACTIVITY = [

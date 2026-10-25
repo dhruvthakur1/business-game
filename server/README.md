@@ -42,6 +42,18 @@ Environment: `DATABASE_URL`, `PORT` (4100), `TIME_SCALE` (60 — a 4h cycle take
   A building set to a design consumes the extra inputs, pays the materials in cash and outputs the design.
   Brand reputation (0–100, starts at 10) decays 1% a day at the daily close and grows with the day's units sold,
   distinct buyers, their quality and on-time contract deliveries; NPC buyers pay up to +20% for it.
+- **Personal wealth** (`src/wealth.ts`, rules in `shared/wealth.ts`): each company has an owner `wallet` account
+  that is not company property (excluded from net worth, untouched by receivership). Money reaches it three ways,
+  each in one ledger transaction (company cash → wallet + income-tax sink): a standing daily **salary** paid at the
+  daily close, capped at 15% of the 7-day average operating profit; **dividends**, limited to the last 30 days'
+  operating profit minus what was already paid out; and **owner withdrawals**, with an extra 10% tax. Every payout
+  must leave 7 days of upkeep and debt service in company cash, and none is allowed while loans are late or upkeep
+  is unpaid. Income tax is progressive on rolling 30-day payouts (0% to 50k, 10%, 15%, 25%). Luxury items are
+  bought rung by rung per collection from the wallet, sold back at the category's buyback rate, and charged daily
+  upkeep from the wallet at the close; an item whose upkeep can't be paid goes into storage (no prestige) instead
+  of being seized. Prestige = Σ 100 × log10(price / 1,000) × rarity for displayed items + 100 per trophy.
+- **Cash-flow history** (`GET /api/cashflow`): revenue (NPC sales, exchange and contract proceeds) and operating
+  costs (op cost, upkeep, NPC and exchange/contract purchases net of refunds) per game day for the last 7 days.
 - **Exchange** (`src/exchange.ts`): limit orders with price-time priority, executing at the resting order's
   price. Buyers lock `price × qty` in an escrow account; sellers move goods into the order. Each fill settles in
   one ledger transaction (buyer escrow → seller cash − 2% fee → fee sink, plus any price-improvement refund).
@@ -119,6 +131,9 @@ With `Authorization: Bearer <token>`: `GET /api/me`, `GET /api/activity`, `POST 
 `GET /api/research`, `POST /api/research/focus` `{family | null}`, `POST /api/research/apply` `{family, points}`.
 `GET /api/designer`, `GET /api/brands/check?name=`, `POST /api/brands` `{name, logo}`,
 `POST /api/designs` `{brandId, templateId, slots, tier, priceCents}`, `POST /api/buildings/:id/design` `{designId | null}`.
+`GET /api/wealth`, `POST /api/wealth/salary` `{salaryCents}`, `POST /api/wealth/dividend` `{amountCents}`,
+`POST /api/wealth/withdraw` `{amountCents}`, `POST /api/wealth/items` `{itemId}`, `POST /api/wealth/items/:itemId/sell`,
+`GET /api/cashflow`.
 
 Dev only (`DEMO_LOGIN` on): `POST /api/dev/close-day` runs the company's next daily close now;
 `POST /api/dev/advance-contracts` `{hours}` shifts the company's contract windows and RFQ deadlines into the past
@@ -128,5 +143,5 @@ by that many game hours and processes them.
 ## Not built yet
 
 Wages, mortgages, lines of credit and savings, player bonds, a player auction in receivership, freight and transit time for contract deliveries, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
-dress and sneaker templates (no garment factory yet), personal wealth, real authentication (sessions are bearer tokens with no password), rate limiting, and
-linked-account detection. The web screens for these still run on demo data.
+dress and sneaker templates (no garment factory yet), luxury auctions and player Luxury Stores, renting, real authentication (sessions are bearer tokens with no password), rate limiting, and
+linked-account detection.

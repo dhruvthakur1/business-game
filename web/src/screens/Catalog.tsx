@@ -4,7 +4,8 @@ import { useGame } from '../state/game';
 import { TopBar } from '../components/AppShell';
 import { Card, QualityFrame, QualityStars, Segmented, TierChip } from '../components/ui';
 import { BUILDING_TYPES, PRODUCTS, recipeText } from '../data/catalog';
-import { GALLERY, LADDERS } from '../data/lifestyle';
+import { GALLERY } from '../data/lifestyle';
+import { LADDERS } from '../../../shared/wealth';
 import { dec, num } from '../lib/format';
 
 type Tab = 'buildings' | 'goods' | 'luxury';
@@ -91,11 +92,11 @@ export function Catalog() {
 
       {tab === 'luxury' && (
         <>
-          {LADDERS.filter((l) => l.rungs.some((r) => r.art)).map((l) => (
+          {LADDERS.filter((l) => l.items.some((r) => r.art)).map((l) => (
             <Card key={l.id} title={l.label}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 14 }}>
-                {l.rungs.filter((r) => r.art).map((r, i) => (
-                  <article key={r.name} className="flush" style={{ background: 'var(--raised)', borderRadius: 14, overflow: 'hidden', border: `1px solid ${i === l.rungs.length - 1 ? 'var(--gold-edge)' : 'transparent'}` }}>
+                {l.items.filter((r) => r.art).map((r, i) => (
+                  <article key={r.name} className="flush" style={{ background: 'var(--raised)', borderRadius: 14, overflow: 'hidden', border: `1px solid ${i === l.items.length - 1 ? 'var(--gold-edge)' : 'transparent'}` }}>
                     <div className="art-stage" style={{ height: 150 }}><img src={r.art} alt={r.name} style={{ width: '100%', height: 140, objectFit: 'contain' }} /></div>
                     <div className="stack-sm" style={{ padding: '12px 14px', gap: 4 }}>
                       <strong>{r.name}</strong>

@@ -1,5 +1,6 @@
 import { BANKRUPTCY, DELINQUENCY, OVERDRAFT, RECEIVERSHIP } from '../../shared/bank';
 import { updateReputation } from './brands';
+import { closeOwnerDay } from './wealth';
 import { creditScore } from '../../shared/economy';
 import { applyPayment, creditProfile, logLoanEvent, openLoans, saveLoan, type LoanRow } from './bank';
 import { type Db, type Tx, withTx } from './db';
@@ -23,6 +24,7 @@ export interface DayReport {
   overdraftDrawCents: number;
   receivership: boolean;
   bankrupt: boolean;
+  salaryPaidCents: number;
 }
 
 /**
@@ -31,10 +33,11 @@ export interface DayReport {
  * 2. upkeep for every building, drawing on the overdraft if cash runs short;
  * 3. overdraft interest and automatic repayment;
  * 4. receivership if any loan is 14+ days past due;
- * 5. a daily snapshot used by the credit score.
+ * 5. brand reputation and a daily snapshot used by the credit score;
+ * 6. the owner's salary from company cash, then item upkeep from the wallet.
  */
 export async function closeDay(tx: Tx, companyId: string, day: number): Promise<DayReport> {
-  const report: DayReport = { day, installmentsPaidCents: 0, missed: 0, upkeepPaidCents: 0, upkeepShortCents: 0, overdraftDrawCents: 0, receivership: false, bankrupt: false };
+  const report: DayReport = { day, installmentsPaidCents: 0, missed: 0, upkeepPaidCents: 0, upkeepShortCents: 0, overdraftDrawCents: 0, receivership: false, bankrupt: false, salaryPaidCents: 0 };
   const company = (await tx.query<{ upkeep_arrears_cents: number; is_npc: boolean }>(
     'SELECT upkeep_arrears_cents, is_npc FROM companies WHERE id = $1 FOR UPDATE',
     [companyId],
@@ -182,6 +185,11 @@ export async function closeDay(tx: Tx, companyId: string, day: number): Promise<
      VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (company_id, day) DO NOTHING`,
     [companyId, day, await operatingFlowCents(tx, companyId, dayStart, dayEnd), upkeepPaid, service, await cashOf(tx, companyId)],
   );
+  // 7. Owner: salary from company cash, then item upkeep from the wallet (skipped in receivership).
+  if (!report.receivership) {
+    const owner = await closeOwnerDay(tx, companyId, day);
+    report.salaryPaidCents = owner.salaryPaid;
+  }
   await tx.query('UPDATE companies SET last_settled_day = GREATEST(last_settled_day, $2) WHERE id = $1', [companyId, day]);
   return report;
 }

@@ -52,6 +52,7 @@ export interface MeResponse {
   timeScale: number;
   cashCents: number;
   escrowCents: number;
+  walletCents: number;
   debtCents: number;
   upkeepArrearsCents: number;
   netWorthCents: number;
@@ -358,4 +359,34 @@ export interface ContestDetailResponse {
   lastResult: { week: number; rank: number; points: number; reward: string | null; prizeCents: number } | null;
   rotation: { id: string; name: string; activeThisWeek: boolean }[];
   nextWeek: string[];
+}
+
+export type PayoutKind = 'salary' | 'dividend' | 'withdrawal';
+
+export interface WealthResponse {
+  walletCents: number;
+  salaryCents: number;
+  limits: {
+    cashCents: number;
+    avgOpProfit7dCents: number;
+    salaryCapCents: number;
+    reserveCents: number;
+    profit30dCents: number;
+    paidOut30dCents: number;
+    dividendAvailableCents: number;
+    withdrawableCents: number;
+    blocked: string | null;
+  };
+  inflows30dCents: number;
+  prestige: number;
+  upkeepPerDayCents: number;
+  owned: { itemId: string; priceCents: number; stored: boolean; boughtAt: string | null }[];
+  trophies: { kind: string; title: string }[];
+  payouts: { kind: PayoutKind; grossCents: number; taxCents: number; at: string }[];
+}
+
+export interface CashflowDay {
+  day: number;
+  revenueCents: number;
+  costsCents: number;
 }

@@ -10,6 +10,7 @@ import { npcBuy, npcSell } from './npc';
 import { buyBuilding, collect, setBuildingDesign, startJob, upgradeBuilding } from './production';
 import { applyPoints, researchView, setFocus } from './research';
 import { allDesigns, brandNameStatus, createDesign, designerView, registerBrand } from './brands';
+import { buyItem, cashflowHistory, declareDividend, ownerWithdrawal, sellItem, setSalary, wealthView } from './wealth';
 import { activity, companyState } from './state';
 import { bankOverview, repayLoan, restructureLoan, takeLoan } from './bank';
 import { closeNextDay } from './daily';
@@ -311,6 +312,36 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
     const id = uuid.parse((req.params as { id: string }).id);
     const body = z.object({ designId: z.string().max(40).nullable() }).parse(req.body);
     return withTx(db, (tx) => setBuildingDesign(tx, req.company.id, id, body.designId));
+  });
+
+  // ---------- Personal wealth ----------
+  app.get('/api/wealth', async (req) => wealthView(db, req.company.id));
+  app.get('/api/cashflow', async (req) => ({ days: await cashflowHistory(db, req.company.id, 7) }));
+
+  app.post('/api/wealth/salary', async (req) => {
+    const body = z.object({ salaryCents: z.number().int().min(0) }).parse(req.body);
+    return withTx(db, (tx) => setSalary(tx, req.company.id, body.salaryCents));
+  });
+
+  app.post('/api/wealth/dividend', async (req) => {
+    const body = z.object({ amountCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => declareDividend(tx, req.company.id, body.amountCents));
+  });
+
+  app.post('/api/wealth/withdraw', async (req) => {
+    const body = z.object({ amountCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => ownerWithdrawal(tx, req.company.id, body.amountCents));
+  });
+
+  app.post('/api/wealth/items', async (req, reply) => {
+    const body = z.object({ itemId: z.string().max(40) }).parse(req.body);
+    const result = await withTx(db, (tx) => buyItem(tx, req.company.id, body.itemId));
+    return reply.status(201).send(result);
+  });
+
+  app.post('/api/wealth/items/:itemId/sell', async (req) => {
+    const itemId = z.string().max(40).parse((req.params as { itemId: string }).itemId);
+    return withTx(db, (tx) => sellItem(tx, req.company.id, itemId));
   });
 
   // ---------- Leagues & contests ----------

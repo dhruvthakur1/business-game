@@ -4,7 +4,7 @@ import { TopBar } from '../components/AppShell';
 import { buildingsToMap, PlotMap } from '../components/PlotMap';
 import { Card, LeagueBadge, ProgressBar, Segmented, StatTile } from '../components/ui';
 import { productById } from '../data/catalog';
-import { CASHFLOW } from '../data/mock';
+import { CashflowChart } from '../components/CashflowChart';
 import type { Building } from '../data/types';
 import { dec, duration, num, signed } from '../lib/format';
 import { useGame } from '../state/game';
@@ -32,7 +32,6 @@ export function Headquarters() {
   const [view, setView] = useState<'map' | 'list'>('map');
   const [collecting, setCollecting] = useState(false);
   const league = state?.league ?? null;
-  const maxCash = Math.max(...CASHFLOW.map((d) => Math.max(d.revenue, d.costs))) * 1.08;
   const running = buildings.filter((b) => b.status === 'running');
   const rows = Math.max(1, Math.ceil(PLOTS_PER_COMPANY / PLOT_COLS));
 
@@ -186,24 +185,7 @@ export function Headquarters() {
       </section>
 
       <section className="split">
-        <Card
-          className="main"
-          title="Cash flow · last 7 days"
-          action={<span className="chip" style={{ background: 'var(--line)', color: 'var(--text-soft)' }}>Sample data</span>}
-        >
-          <div
-            role="img"
-            aria-label="Sample revenue and cost bars for the last seven days"
-            style={{ display: 'grid', gridTemplateColumns: `repeat(${CASHFLOW.length}, minmax(0, 1fr))`, gap: 12, alignItems: 'end', height: 180, borderBottom: '1px solid var(--line)' }}
-          >
-            {CASHFLOW.map((d) => (
-              <div key={d.day} style={{ display: 'flex', gap: 4, alignItems: 'flex-end', justifyContent: 'center', height: '100%' }}>
-                <div style={{ width: '40%', height: `${(d.revenue / maxCash) * 100}%`, background: 'var(--info)', borderRadius: '4px 4px 0 0' }} />
-                <div style={{ width: '40%', height: `${(d.costs / maxCash) * 100}%`, background: '#3a4352', borderRadius: '4px 4px 0 0' }} />
-              </div>
-            ))}
-          </div>
-        </Card>
+        <CashflowChart />
 
         <Card className="side" title="Ledger activity" style={{ gap: 4 }}>
           {activity.length === 0 && <p className="muted">No transactions yet.</p>}

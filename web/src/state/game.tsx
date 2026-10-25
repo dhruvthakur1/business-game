@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { api, ApiError, setToken, getToken, toCr } from '../api/client';
 import type { ActivityItem, CollectResult, MeResponse, PlaceOrderResult, ServerBuilding } from '../api/types';
 import { buildingTypeById, productById, registerDesigns } from '../data/catalog';
-import { START_WALLET } from '../data/mock';
 import type { Building } from '../data/types';
 import { netPerDay, type Quality } from '../lib/economy';
 import { dec, num } from '../lib/format';
@@ -79,10 +78,8 @@ interface GameApi {
   /** Runs an API call with error toasts and a state refresh afterwards. */
   act: <T>(fn: () => Promise<T>) => Promise<T | null>;
 
-  // Personal wealth is still a client-side demo (not on the server yet).
+  /** Owner's personal wallet, CR (kept apart from company cash). */
   wallet: number;
-  owned: Record<string, number>;
-  buyItem: (ladder: string, name: string, price: number) => boolean;
 
   toasts: Toast[];
   notify: (title: string, body?: string, tone?: ToastTone) => void;
@@ -100,8 +97,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [now, setNow] = useState(Date.now());
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [wallet, setWallet] = useState(START_WALLET);
-  const [owned, setOwned] = useState<Record<string, number>>({ garage: 1, vault: 1, wardrobe: 2, homes: 1 });
   const clockSkew = useRef(0);
   const lastLevel = useRef<{ company: string; level: number } | null>(null);
 
@@ -271,18 +266,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     },
 
     act,
-    wallet,
-    owned,
-    buyItem: (ladder, name, price) => {
-      if (price > wallet) {
-        notify('Not enough in your wallet', `${name} costs ${num(price)} CR.`, 'bad');
-        return false;
-      }
-      setWallet((w) => w - price);
-      setOwned((o) => ({ ...o, [ladder]: (o[ladder] ?? 0) + 1 }));
-      notify(`${name} is yours`, 'Shown in your showroom and on your profile.');
-      return true;
-    },
+    wallet: me ? toCr(me.walletCents) : 0,
 
     toasts,
     notify,

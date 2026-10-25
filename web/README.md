@@ -20,7 +20,7 @@ npm run build
 | `src/components/` | `AppShell` (sidebar, top bar, mobile tab bar, toasts), `PlotMap` (isometric plots), `ui.tsx` (chips, stat tiles, progress, stepper, segmented control, quality frame), `Icon` |
 | `src/lib/economy.ts` | Pure game formulas: net/day, upgrade cost, admin overhead, quality cap, EMI, credit score, rate tiers, reliability, contest points, value check, income tax, freight, prestige |
 | `src/lib/format.ts` | Number, trend and duration formatting |
-| `src/data/` | Catalog (products, building types, registered designs), demo company state, contests, lifestyle ladders, brand logos |
+| `src/data/` | Catalog (products, building types, registered designs), demo company state, contests, luxury art gallery, brand logos |
 | `src/state/game.tsx` | Client game store: cash, wallet, buildings with a demo clock (1 s = 1 game minute), loans, toasts |
 | `src/screens/` | Landing, Onboarding, Headquarters, BuildingDetail, Market, Contracts, Designer, Research, Bank, Leagues, Contests, Showroom, Catalog |
 | `public/art/` | Building and product SVGs copied from `../design/buildings` and `../design/products` |
@@ -45,4 +45,8 @@ Research (`/app/research`) and the product designer (`/app/designer`) are server
 registered from `/api/me` so `productById` can name and draw them anywhere; building pages offer a recipe picker
 when the company has designs for that building.
 
-Still demo data (no server support yet): showroom and personal wallet, and the HQ cash-flow chart.
+The Showroom (`/app/showroom`) runs on `/api/wealth`: wallet, salary, dividends and withdrawals with a tax preview,
+luxury purchases and buyback, prestige and the trophy cabinet. The HQ cash-flow chart (`src/components/CashflowChart.tsx`)
+reads `/api/cashflow`.
+
+Still demo data: the season pass box in the sidebar.

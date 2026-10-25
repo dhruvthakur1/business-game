@@ -38,13 +38,13 @@ export async function revenueCents(q: Q, companyId: string, from: Date, to: Date
 }
 
 /**
- * Conservative asset value: cash + escrow + goods at min(base, reference) price + goods on open sell
+ * Conservative asset value (the owner's personal wallet is not company property): cash + escrow + goods at min(base, reference) price + goods on open sell
  * orders + 70% of what was spent on buildings.
  */
 export async function assetsCents(q: Q, companyId: string): Promise<number> {
   const res = await q.query<{ money: number; goods: number; buildings: number; sell_orders: number }>(
     `SELECT
-       (SELECT COALESCE(SUM(balance_cents), 0) FROM accounts WHERE company_id = $1)::bigint AS money,
+       (SELECT COALESCE(SUM(balance_cents), 0) FROM accounts WHERE company_id = $1 AND kind <> 'wallet')::bigint AS money,
        (SELECT COALESCE(SUM(i.qty * LEAST(p.ref_price_cents, COALESCE(r.price_cents, p.ref_price_cents))), 0)
           FROM inventory i JOIN products p ON p.id = i.product_id LEFT JOIN reference_prices r ON r.product_id = p.id
           WHERE i.company_id = $1)::bigint AS goods,
@@ -97,6 +97,7 @@ export async function companyState(db: Db, company: Company) {
     timeScale: config.timeScale,
     cashCents: bal('cash'),
     escrowCents: bal('escrow'),
+    walletCents: bal('wallet'),
     debtCents: debt,
     upkeepArrearsCents: Number(flags.rows[0].upkeep_arrears_cents),
     netWorthCents: assets - debt,

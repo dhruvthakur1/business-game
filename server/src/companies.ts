@@ -38,7 +38,7 @@ export async function createCompany(
       if ((err as { code?: string }).code === '23505') throw conflict('name_taken', 'That company name is taken.');
       throw err;
     }
-    await tx.query("INSERT INTO accounts (company_id, kind) VALUES ($1, 'cash'), ($1, 'escrow'), ($1, 'bond')", [company.id]);
+    await tx.query("INSERT INTO accounts (company_id, kind) VALUES ($1, 'cash'), ($1, 'escrow'), ($1, 'bond'), ($1, 'wallet')", [company.id]);
     const capital = input.capitalCents ?? toCents(STARTING_CAPITAL);
     const faucet = await systemAccount(tx, 'faucet:starting_capital');
     const cash = await companyAccount(tx, company.id, 'cash');
