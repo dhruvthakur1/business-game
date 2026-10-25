@@ -29,7 +29,8 @@ npm install
 npm run dev        # http://localhost:5173, proxies /api to :4100
 ```
 
-Open the app and choose **Found a company** (onboarding) or **Use demo company**.
+Open the app and choose **Found a company** (creates an account and a company), **Sign in**, or, in development,
+**Use demo company**. The seeded demo company also has a dev-only login, listed in `server/README.md`.
 
 To use your own PostgreSQL server instead of the local cluster, set `DATABASE_URL`
 (e.g. `postgres://user:pass@localhost:5432/mercantile`) before `npm run reset` / `npm run dev`.

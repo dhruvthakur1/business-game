@@ -10,6 +10,7 @@ import { npcSell } from './npc';
 import { buyBuilding, setBuildingDesign, startJob } from './production';
 import { createDesign } from './brands';
 import { createListing, setShelf } from './retail';
+import { hashPassword } from './auth';
 import { companyAccount, systemAccount, transfer } from './ledger';
 
 /** Upserts products, building types and recipes from shared/catalog.ts. Safe to run repeatedly. */
@@ -54,6 +55,7 @@ export async function seedWorld(db: Db) {
     await seedResearchAndBrands(db);
     await seedWealth(db);
     await seedRetail(db);
+    await seedDevAccount(db);
     console.log('World already seeded; catalog refreshed.');
     return;
   }
@@ -128,6 +130,7 @@ export async function seedWorld(db: Db) {
   await seedResearchAndBrands(db);
   await seedWealth(db);
   await seedRetail(db);
+  await seedDevAccount(db);
   console.log('Seeded catalog, 4 market makers and the Northwind Holdings demo company.');
 }
 
@@ -203,6 +206,15 @@ export async function seedRetail(db: Db) {
     await addGoods(tx, ferro, 'luxury_watch', 1, 6);
     await createListing(tx, ferro, store.id, { productId: 'luxury_watch', quality: 1, qty: 6, priceCents: toCents(1_350) });
   });
+}
+
+/** Local development sign-in for the demo company (see server/README.md). Never used outside a dev database. */
+export const DEV_ACCOUNT = { email: 'dev@mercantile.test', password: 'northwind-dev-only' };
+
+export async function seedDevAccount(db: Db) {
+  const nw = (await db.query<{ id: string }>("SELECT id FROM companies WHERE name = 'Northwind Holdings' AND NOT is_npc")).rows[0];
+  if (!nw || (await db.query('SELECT 1 FROM users WHERE company_id = $1', [nw.id])).rowCount) return;
+  await db.query('INSERT INTO users (email, password_hash, company_id) VALUES ($1, $2, $3)', [DEV_ACCOUNT.email, await hashPassword(DEV_ACCOUNT.password), nw.id]);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

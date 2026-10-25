@@ -64,8 +64,11 @@ interface GameApi {
   timeScale: number;
   refresh: () => Promise<void>;
   signInDemo: () => Promise<void>;
-  createCompany: (name: string, region: string) => Promise<void>;
-  signOut: () => void;
+  /** Creates an account and its company. Throws ApiError so forms can show the message by the right field. */
+  signUp: (input: { email: string; password: string; companyName: string; region: string }) => Promise<void>;
+  /** Throws ApiError (wrong password, too many attempts). */
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
   collect: (ids?: string[]) => Promise<void>;
   startJob: (buildingId: string, inputQuality?: number) => Promise<boolean>;
   upgrade: (buildingId: string) => Promise<void>;
@@ -200,13 +203,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
         await refresh();
       }
     },
-    // Throws ApiError so onboarding can show the message next to the name field.
-    createCompany: async (name, region) => {
-      const res = await api<{ token: string }>('/companies', { body: { name, region } });
+    signUp: async (input) => {
+      const res = await api<{ token: string }>('/auth/signup', { body: input });
       setToken(res.token);
       await refresh();
     },
-    signOut: () => {
+    signIn: async (email, password) => {
+      const res = await api<{ token: string }>('/auth/signin', { body: { email, password } });
+      setToken(res.token);
+      setStatus('loading');
+      await refresh();
+    },
+    signOut: async () => {
+      // End the session on the server too; sign out locally even if the server can't be reached.
+      await api('/auth/signout', { body: {} }).catch(() => undefined);
       setToken(null);
       setMe(null);
       setStatus('signedOut');

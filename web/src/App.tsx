@@ -14,6 +14,7 @@ import { Market } from './screens/Market';
 import { Onboarding } from './screens/Onboarding';
 import { Research } from './screens/Research';
 import { Showroom } from './screens/Showroom';
+import { SignIn } from './screens/SignIn';
 
 function NotFound() {
   return (
@@ -31,6 +32,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/start" element={<Onboarding />} />
+          <Route path="/signin" element={<SignIn />} />
           <Route path="/app" element={<AppShell />}>
             <Route index element={<Headquarters />} />
             <Route path="buildings/:id" element={<BuildingDetail />} />

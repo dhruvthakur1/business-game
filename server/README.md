@@ -14,7 +14,10 @@ Fastify + PostgreSQL. All money is stored as integer cents.
 | `npm test` | Integration tests against `mercantile_test` |
 
 Environment: `DATABASE_URL`, `PORT` (4100), `TIME_SCALE` (60 — a 4h cycle takes 4 real minutes; use 1 for real time),
-`DEMO_LOGIN=off` to disable the demo sign-in.
+`DEMO_LOGIN=off` to disable the demo sign-in and the dev-only routes.
+
+Local development sign-in for the seeded demo company: `dev@mercantile.test` / `northwind-dev-only`
+(created by `npm run seed`; see `DEV_ACCOUNT` in `src/seed.ts`). Only for a local dev database.
 
 ## How it works
 
@@ -52,6 +55,13 @@ Environment: `DATABASE_URL`, `PORT` (4100), `TIME_SCALE` (60 — a 4h cycle take
   bought rung by rung per collection from the wallet, sold back at the category's buyback rate, and charged daily
   upkeep from the wallet at the close; an item whose upkeep can't be paid goes into storage (no prestige) instead
   of being seized. Prestige = Σ 100 × log10(price / 1,000) × rarity for displayed items + 100 per trophy.
+- **Accounts** (`src/auth.ts`): one account (email + password) per company, created together at sign-up.
+  Passwords are hashed with scrypt (N=2^14, r=8, p=1, random 16-byte salt) and must be 10+ characters; emails
+  are unique case-insensitively. Sessions are random 256-bit bearer tokens of which only the SHA-256 hash is
+  stored; they expire after 30 days without use (each day of use extends them) and are pruned hourly. Sign-out
+  deletes the session. Unknown emails and wrong passwords get the same error and similar timing; 10 failures for
+  an email (or 30 from one address) block sign-in for 15 minutes. The failure counters are in memory, and behind a
+  proxy Fastify's `trustProxy` must be set for per-address limits to see real client IPs.
 - **Retail** (`src/retail.ts`, rules in `shared/retail.ts`):
   - *Supermarket*: a standing shelf (product, quality, price) runs as a 4-hour production job. Each cycle stocks up
     to 60 × level units of bread or bread designs from the warehouse and charges the op cost. At collect, NPC
@@ -127,7 +137,8 @@ Environment: `DATABASE_URL`, `PORT` (4100), `TIME_SCALE` (60 — a 4h cycle take
 ## API
 
 Public: `GET /api/health`, `GET /api/catalog`, `GET /api/market`, `GET /api/market/:productId`,
-`POST /api/companies` `{name, region}` → `{token}`, `POST /api/session/demo` → `{token}`.
+`POST /api/auth/signup` `{email, password, companyName, region}` → `{token, company}`,
+`POST /api/auth/signin` `{email, password}` → `{token}`, `POST /api/auth/signout`, `POST /api/session/demo` → `{token}` (dev).
 
 With `Authorization: Bearer <token>`: `GET /api/me`, `GET /api/activity`, `POST /api/buildings` `{typeId}`,
 `POST /api/buildings/:id/start` `{inputQuality?}`, `POST /api/buildings/:id/upgrade`, `POST /api/collect`
@@ -157,5 +168,5 @@ by that many game hours and processes them.
 ## Not built yet
 
 Wages, mortgages, lines of credit and savings, player bonds, a player auction in receivership, freight and transit time for contract deliveries, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
-dress and sneaker templates (no garment factory yet), luxury auctions and player Luxury Stores, renting, real authentication (sessions are bearer tokens with no password), rate limiting, and
+dress and sneaker templates (no garment factory yet), luxury auctions, renting, password reset and email verification, rate limiting beyond sign-in, and
 linked-account detection.

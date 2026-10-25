@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Link } from 'react-router-dom';
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { COMPANY } from '../data/mock';
 import { compact, num } from '../lib/format';
 import { useGame } from '../state/game';
@@ -49,7 +49,8 @@ const MOBILE: NavItem[] = [
 ];
 
 function Sidebar() {
-  const { ready, company, me } = useGame();
+  const { ready, company, me, signOut } = useGame();
+  const navigate = useNavigate();
   const xp = me?.xp;
   const s = COMPANY.season;
   const name = company?.name ?? '—';
@@ -104,6 +105,12 @@ function Sidebar() {
         <ProgressBar value={s.tier / s.tiers} size="thin" label="Season progress" />
         <span className="small muted">Tier {s.tier} / {s.tiers} · next: {s.next}</span>
       </div>
+      {company && (
+        <div className="row-between small" style={{ padding: '4px 4px 0', gap: 8 }}>
+          <span className="muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me?.account?.email ?? 'Demo company'}</span>
+          <button type="button" className="btn btn-ghost" style={{ padding: '4px 0', flexShrink: 0 }} onClick={() => void signOut().then(() => navigate('/'))}>Sign out</button>
+        </div>
+      )}
     </nav>
   );
 }
@@ -183,10 +190,11 @@ function SessionGate() {
   return (
     <div className="card" style={{ marginTop: 48, maxWidth: 560 }}>
       <h1 className="h-section">You’re not signed in</h1>
-      <p className="muted">Found your own company, or jump into the seeded demo company to look around.</p>
+      <p className="muted">Sign in to your company, or found a new one.</p>
       <div className="row">
-        <Link to="/start" className="btn btn-primary">Found a company</Link>
-        <button type="button" className="btn btn-secondary" onClick={() => void signInDemo()}>Use demo company</button>
+        <Link to="/signin" className="btn btn-primary">Sign in</Link>
+        <Link to="/start" className="btn btn-secondary">Found a company</Link>
+        <button type="button" className="btn btn-ghost" onClick={() => void signInDemo()}>Use demo company</button>
       </div>
     </div>
   );

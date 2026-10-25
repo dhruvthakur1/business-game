@@ -27,12 +27,12 @@ describe('HTTP API', () => {
   });
 
   it('runs the onboarding flow over HTTP', async () => {
-    const created = await app.inject({ method: 'POST', url: '/api/companies', payload: { name: 'Api Test Holdings', region: 'north' } });
+    const created = await app.inject({ method: 'POST', url: '/api/auth/signup', payload: { email: 'api@test.dev', password: 'correct horse battery', companyName: 'Api Test Holdings', region: 'north' } });
     expect(created.statusCode).toBe(201);
     const { token } = created.json();
     const auth = { authorization: `Bearer ${token}` };
 
-    const dup = await app.inject({ method: 'POST', url: '/api/companies', payload: { name: 'api test holdings' } });
+    const dup = await app.inject({ method: 'POST', url: '/api/auth/signup', payload: { email: 'other@test.dev', password: 'correct horse battery', companyName: 'api test holdings' } });
     expect(dup.statusCode).toBe(409);
 
     const farm = await app.inject({ method: 'POST', url: '/api/buildings', headers: auth, payload: { typeId: 'farm' } });
@@ -53,7 +53,7 @@ describe('HTTP API', () => {
   });
 
   it('validates input and returns readable errors', async () => {
-    const created = await app.inject({ method: 'POST', url: '/api/companies', payload: { name: 'Validation Co' } });
+    const created = await app.inject({ method: 'POST', url: '/api/auth/signup', payload: { email: 'validation@test.dev', password: 'correct horse battery', companyName: 'Validation Co' } });
     const auth = { authorization: `Bearer ${created.json().token}` };
     const bad = await app.inject({ method: 'POST', url: '/api/orders', headers: auth, payload: { productId: 'flour', side: 'buy', qty: -5, priceCents: 800 } });
     expect(bad.statusCode).toBe(400);

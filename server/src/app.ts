@@ -2,7 +2,8 @@ import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { z, ZodError } from 'zod';
 import { BUILDING_TYPE_DEFS, PRODUCT_DEFS } from '../../shared/catalog';
 import { config } from './config';
-import { companyForToken, createCompany, createSession, REGIONS, type Company } from './companies';
+import { createCompany, REGIONS, type Company } from './companies';
+import { checkCredentials, companyForToken, createSession, endSession, hashPassword, signIn } from './auth';
 import { type Db, withTx } from './db';
 import { GameError, mapDbError, notFound } from './errors';
 import { cancelOrder, marketSummary, myOrders, orderBook, placeOrder, priceHistory } from './exchange';
@@ -27,7 +28,7 @@ declare module 'fastify' {
   }
 }
 
-const PUBLIC = new Set(['/api/health', '/api/catalog', '/api/market', '/api/companies', '/api/session/demo']);
+const PUBLIC = new Set(['/api/health', '/api/catalog', '/api/market', '/api/session/demo', '/api/auth/signup', '/api/auth/signin', '/api/auth/signout']);
 const isPublic = (req: FastifyRequest) =>
   PUBLIC.has(req.routeOptions.url ?? '') || (req.method === 'GET' && (req.routeOptions.url ?? '').startsWith('/api/market/'));
 
@@ -57,7 +58,7 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
   });
 
   // ---------- Public ----------
-  app.get('/api/health', async () => ({ ok: true, timeScale: config.timeScale }));
+  app.get('/api/health', async () => ({ ok: true, timeScale: config.timeScale, demoLogin: config.demoLogin }));
   app.get('/api/catalog', async () => ({ products: PRODUCT_DEFS, buildingTypes: BUILDING_TYPE_DEFS, designs: await allDesigns(db) }));
   app.get('/api/market', async () => ({ products: await marketSummary(db) }));
   app.get('/api/market/:productId', async (req) => {
@@ -75,10 +76,28 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
     };
   });
 
-  app.post('/api/companies', async (req, reply) => {
-    const body = z.object({ name: z.string(), region: z.enum(REGIONS).default('north') }).parse(req.body);
-    const created = await createCompany(db, body);
-    return reply.status(201).send(created);
+  // ---------- Accounts ----------
+  app.post('/api/auth/signup', async (req, reply) => {
+    const body = z
+      .object({ email: z.string().max(300), password: z.string().max(300), companyName: z.string().max(60), region: z.enum(REGIONS).default('north') })
+      .parse(req.body);
+    const email = checkCredentials(body.email, body.password);
+    const passwordHash = await hashPassword(body.password);
+    const created = await createCompany(db, { name: body.companyName, region: body.region, user: { email, passwordHash } });
+    return reply.status(201).send({ token: created.token, company: created.company });
+  });
+
+  app.post('/api/auth/signin', async (req) => {
+    const body = z.object({ email: z.string().max(300), password: z.string().max(300) }).parse(req.body);
+    const { token } = await signIn(db, { ...body, ip: req.ip });
+    return { token };
+  });
+
+  // Ends this session. Works with an expired or unknown token too, so clients can always sign out.
+  app.post('/api/auth/signout', async (req) => {
+    const header = req.headers.authorization ?? '';
+    if (header.startsWith('Bearer ')) await endSession(db, header.slice(7));
+    return { ok: true };
   });
 
   app.post('/api/session/demo', async (_req, reply) => {
@@ -90,7 +109,10 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
   });
 
   // ---------- Signed in ----------
-  app.get('/api/me', async (req) => companyState(db, req.company));
+  app.get('/api/me', async (req) => {
+    const account = await db.query<{ email: string }>('SELECT email FROM users WHERE company_id = $1', [req.company.id]);
+    return { ...(await companyState(db, req.company)), account: account.rows[0] ? { email: account.rows[0].email } : null };
+  });
   app.get('/api/activity', async (req) => ({ items: await activity(db, req.company.id) }));
 
   app.post('/api/buildings', async (req, reply) => {

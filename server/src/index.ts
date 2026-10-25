@@ -6,6 +6,7 @@ import { runDueClosures } from './daily';
 import { processContracts } from './contractWork';
 import { runLeagueCycle } from './leagues';
 import { migrate } from './migrate';
+import { pruneSessions } from './auth';
 
 const db = createPool();
 await migrate(db);
@@ -36,6 +37,11 @@ const leagues = () => runLeagueCycle(db).catch((err) => app.log.error(err, 'leag
 await leagues();
 const leagueTimer = setInterval(leagues, 30_000);
 
+// Expired sessions are deleted hourly.
+const prune = () => pruneSessions(db).catch((err) => app.log.error(err, 'session prune failed'));
+await prune();
+const pruneTimer = setInterval(prune, 60 * 60_000);
+
 await app.listen({ port: config.port, host: '127.0.0.1' });
 app.log.info(`Mercantile API on http://localhost:${config.port} (time scale ×${config.timeScale})`);
 
@@ -44,6 +50,7 @@ const shutdown = async () => {
   clearInterval(closeTimer);
   clearInterval(contractTimer);
   clearInterval(leagueTimer);
+  clearInterval(pruneTimer);
   await app.close();
   await db.end();
   process.exit(0);

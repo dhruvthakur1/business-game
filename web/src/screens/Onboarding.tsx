@@ -24,7 +24,7 @@ const REGIONS = [
 ];
 
 const STEPS = [
-  { title: 'Name your company', lead: `Every empire starts with a name. You get ${num(STARTING_CAPITAL)} CR of welcome capital.`, tip: 'Pick something you will be happy to see on a leaderboard.' },
+  { title: 'Name your company', lead: `Every empire starts with a name and an account. You get ${num(STARTING_CAPITAL)} CR of welcome capital.`, tip: 'Pick something you will be happy to see on a leaderboard. Your email is never shown to other players.' },
   { title: 'Choose a home region', lead: 'Your first 12 plots are here. Shipping inside a region takes 1 hour; between regions, 4 hours plus freight.', tip: 'Regional bonuses are not simulated yet; North is the classic food start.' },
   { title: 'Buy your first building', lead: 'Farms are cheap, fast and supply everyone else. Buildings run one 4-hour job at a time.', tip: 'Long-term, the mill and bakery earn more. The farm feeds them.' },
   { title: 'Stock up on inputs', lead: 'Production takes its inputs from your warehouse when a job starts. Buy one cycle from the NPC vendor.', tip: 'Later, other players may sell seeds cheaper on the exchange.' },
@@ -37,6 +37,9 @@ export function Onboarding() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [accountError, setAccountError] = useState<string | null>(null);
   const [region, setRegion] = useState('north');
   const [farmId, setFarmId] = useState<string | null>(null);
   const [inputs, setInputs] = useState(false);
@@ -50,19 +53,22 @@ export function Onboarding() {
   const createCompany = async () => {
     setBusy(true);
     try {
-      await game.createCompany(name.trim(), region);
+      await game.signUp({ email, password, companyName: name.trim(), region });
       setCreated(true);
       setStep(2);
     } catch (err) {
       if (!(err instanceof ApiError)) throw err;
-      setNameError(err.code === 'offline' ? 'The game server is not running.' : err.message);
+      const message = err.code === 'offline' ? 'The game server is not running.' : err.message;
+      // Name problems show by the name field; everything else is about the account.
+      if (err.code === 'name_taken' || /company name/i.test(err.message)) setNameError(message);
+      else setAccountError(message);
       setStep(0);
     } finally {
       setBusy(false);
     }
   };
 
-  const ready = [name.trim().length >= 3, true, !!farmId, inputs, started];
+  const ready = [name.trim().length >= 3 && /\S+@\S+\.\S+/.test(email) && password.length >= 10, true, !!farmId, inputs, started];
   const checks: [string, boolean][] = [
     ['Claim welcome capital', true],
     ['Name your company', created],
@@ -114,6 +120,19 @@ export function Onboarding() {
                 />
               </label>
               {nameError ? <span className="loss" style={{ fontSize: 13 }}>{nameError}</span> : <span className="muted" style={{ fontSize: 13 }}>Shown on the exchange, in leagues and on your storefront. Must be unique.</span>}
+              <div className="row" style={{ gap: 16 }}>
+                <label className="field" style={{ flex: '1 1 220px' }}>
+                  Email
+                  <input className="input" type="email" autoComplete="email" value={email} disabled={created} aria-invalid={!!accountError} onChange={(e) => { setEmail(e.target.value); setAccountError(null); }} />
+                </label>
+                <label className="field" style={{ flex: '1 1 220px' }}>
+                  Password
+                  <input className="input" type="password" autoComplete="new-password" value={password} minLength={10} disabled={created} aria-invalid={!!accountError} onChange={(e) => { setPassword(e.target.value); setAccountError(null); }} />
+                </label>
+              </div>
+              {accountError
+                ? <span className="loss" style={{ fontSize: 13 }}>{accountError}</span>
+                : <span className="muted" style={{ fontSize: 13 }}>At least 10 characters. Already playing? <Link to="/signin">Sign in</Link>.</span>}
             </Card>
           )}
 

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useGame } from '../state/game';
 import { Logo } from '../components/Icon';
 import { PlotMap, type MapItem } from '../components/PlotMap';
@@ -43,12 +43,7 @@ const wrap = { maxWidth: 1200, margin: '0 auto', padding: '0 24px' } as const;
 const h2 = { fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 4vw, 44px)', fontWeight: 700, letterSpacing: -1, lineHeight: 1.05 } as const;
 
 export function Landing() {
-  const { status, signInDemo } = useGame();
-  const navigate = useNavigate();
-  const signIn = async () => {
-    if (status !== 'ready') await signInDemo();
-    navigate('/app');
-  };
+  const { status } = useGame();
   return (
     <div style={wrap}>
       <nav aria-label="Site" className="row-between" style={{ padding: '24px 0' }}>
@@ -57,9 +52,7 @@ export function Landing() {
           <a href="#how" style={{ color: 'var(--text-soft)' }}>How it works</a>
           <a href="#compete" style={{ color: 'var(--text-soft)' }}>Leagues</a>
           <a href="#fair" style={{ color: 'var(--text-soft)' }}>Fair play</a>
-          <button type="button" onClick={() => void signIn()} style={{ border: 0, background: 'none', color: 'var(--text-soft)', padding: 0, fontSize: 15 }}>
-            {status === 'ready' ? 'Open game' : 'Demo sign-in'}
-          </button>
+          <Link to={status === 'ready' ? '/app' : '/signin'} style={{ color: 'var(--text-soft)' }}>{status === 'ready' ? 'Open game' : 'Sign in'}</Link>
           <Link to="/start" className="btn btn-primary">Play free</Link>
         </div>
       </nav>

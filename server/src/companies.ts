@@ -1,7 +1,7 @@
-import { randomBytes } from 'node:crypto';
 import { STARTING_CAPITAL } from '../../shared/catalog';
-import type { Db, Tx } from './db';
+import type { Db } from './db';
 import { withTx } from './db';
+import { createSession } from './auth';
 import { badRequest, conflict } from './errors';
 import { companyAccount, systemAccount, toCents, transfer } from './ledger';
 import { gameDay } from './time';
@@ -18,7 +18,7 @@ export const REGIONS = ['north', 'east', 'south', 'west'] as const;
 
 export async function createCompany(
   db: Db,
-  input: { name: string; region?: string; isNpc?: boolean; capitalCents?: number; level?: number },
+  input: { name: string; region?: string; isNpc?: boolean; capitalCents?: number; level?: number; user?: { email: string; passwordHash: string } },
 ): Promise<{ company: Company; token: string }> {
   const name = input.name.trim().replace(/\s+/g, ' ');
   if (name.length < 3 || name.length > 28) throw badRequest('Company name must be 3–28 characters.');
@@ -38,6 +38,16 @@ export async function createCompany(
       if ((err as { code?: string }).code === '23505') throw conflict('name_taken', 'That company name is taken.');
       throw err;
     }
+    if (input.user) {
+      try {
+        await tx.query('SAVEPOINT account');
+        await tx.query('INSERT INTO users (email, password_hash, company_id) VALUES ($1, $2, $3)', [input.user.email, input.user.passwordHash, company.id]);
+        await tx.query('RELEASE SAVEPOINT account');
+      } catch (err) {
+        if ((err as { code?: string }).code === '23505') throw conflict('email_taken', 'An account with that email already exists. Sign in instead.');
+        throw err;
+      }
+    }
     await tx.query("INSERT INTO accounts (company_id, kind) VALUES ($1, 'cash'), ($1, 'escrow'), ($1, 'bond'), ($1, 'wallet')", [company.id]);
     const capital = input.capitalCents ?? toCents(STARTING_CAPITAL);
     const faucet = await systemAccount(tx, 'faucet:starting_capital');
@@ -46,18 +56,4 @@ export async function createCompany(
     const token = await createSession(tx, company.id);
     return { company, token };
   });
-}
-
-export async function createSession(tx: Tx, companyId: string): Promise<string> {
-  const token = randomBytes(24).toString('base64url');
-  await tx.query('INSERT INTO sessions (token, company_id) VALUES ($1, $2)', [token, companyId]);
-  return token;
-}
-
-export async function companyForToken(db: Db, token: string): Promise<Company | null> {
-  const res = await db.query<Company>(
-    'SELECT c.id, c.name, c.region, c.level FROM sessions s JOIN companies c ON c.id = s.company_id WHERE s.token = $1',
-    [token],
-  );
-  return res.rows[0] ?? null;
 }

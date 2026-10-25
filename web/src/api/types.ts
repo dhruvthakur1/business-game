@@ -62,6 +62,8 @@ export interface MeResponse {
   buildings: ServerBuilding[];
   research: Record<FamilyId, number>;
   designs: ServerDesign[];
+  /** The signed-in account (null for the demo company). */
+  account: { email: string } | null;
 }
 
 /** A branded product made with the product designer. Its id is a product id. */
