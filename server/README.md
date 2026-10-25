@@ -30,6 +30,11 @@ Local development sign-in for the seeded demo company: `dev@mercantile.test` / `
   cost (with admin overhead) and sets `finishes_at`. Jobs settle lazily: `collect` atomically flips finished jobs
   from `running` to `collected` and credits goods, so it can never double-pay, then restarts jobs that have inputs.
   Output quality follows `min(mean input Q + research, lowest input + 1)`.
+- **Regions** (rules in `shared/regions.ts`): buildings are in the company's home region. Each level employs 10
+  workers; wages are 40% of op cost at wage index 1.0 and are charged as their own ledger line (`wages` →
+  `sink:wages`), scaled by the region's index. North: +10% farm yield, wages ×1.0. East: +10% iron mine and
+  power plant output, ×1.0. South: wages ×0.8 (freight discount once shipping exists). West: +20% research
+  points and +10% chip output, wages ×1.3. Output is `floor(base × level × yield)`.
 - **Research** (`src/research.ts`, rules in `shared/research.ts`): eight families with tiers at 50 / 250 / 1.5k / 6k /
   20k points. R&D Labs (Lv 3) turn 2 MWh into 25 research points per level per cycle; points go straight to the
   company's lab focus, or to the warehouse as a tradeable product (`research_points`) when no focus is set. Points
@@ -174,6 +179,6 @@ by that many game hours and processes them.
 
 ## Not built yet
 
-Wages, mortgages, lines of credit and savings, player bonds, a player auction in receivership, freight and transit time for contract deliveries, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
+Freight and transit time between regions, mortgages, lines of credit and savings, player bonds, a player auction in receivership, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
 dress and sneaker templates (no garment factory yet), luxury auctions, renting, password reset and email verification, rate limiting beyond sign-in, and
 linked-account detection.

@@ -12,6 +12,7 @@ import { BUILDING_FAMILY, RESEARCH_PRODUCT, researchBonus } from '../../shared/r
 import { VARIANT_TIERS, variantInputQty, type VariantTier } from '../../shared/designer';
 import { addResearch, familyTier } from './research';
 import { settleShelfJob, startShelfJob } from './retail';
+import { cycleOutput, opCostSplit } from '../../shared/regions';
 
 export interface BuildingView {
   id: string;
@@ -114,11 +115,8 @@ export async function startJob(tx: Tx, companyId: string, buildingId: string, op
   // Research points have no quality.
   const outQ = out.productId === RESEARCH_PRODUCT ? 0 : outputQuality(qualities, bonus);
 
-  const levels = await tx.query<{ total: number }>('SELECT COALESCE(SUM(level), 0)::int AS total FROM buildings WHERE company_id = $1', [companyId]);
-  const opCost = Math.round(type.opCostCents * b.level * adminOverhead(levels.rows[0].total));
+  const opCost = await chargeOpCost(tx, companyId, b.name, type.opCostCents * b.level);
   const cash = await companyAccount(tx, companyId, 'cash');
-  const sink = await systemAccount(tx, 'sink:operations');
-  await transfer(tx, 'op_cost', `${b.name}: operating cost`, cash, sink, opCost);
   if (design) {
     const materials = Math.round(Number(design.materials_cents) * VARIANT_TIERS[design.tier].inputMult * out.qty * b.level);
     await transfer(tx, 'op_cost', `${b.name}: design materials`, cash, await systemAccount(tx, 'sink:materials'), materials);
@@ -131,9 +129,28 @@ export async function startJob(tx: Tx, companyId: string, buildingId: string, op
   const job = await tx.query<{ id: string }>(
     `INSERT INTO production_jobs (building_id, started_at, finishes_at, state, output_product, output_qty, output_quality, input_quality, input_value_cents)
      VALUES ($1, $2, $3, 'running', $4, $5, $6, $7, $8) RETURNING id`,
-    [b.id, now, finishes, outProduct, out.qty * b.level, outQ, qualities[0] ?? 0, inputValue],
+    [b.id, now, finishes, outProduct, cycleOutput(out.qty, b.level, await companyRegion(tx, companyId), type.id), outQ, qualities[0] ?? 0, inputValue],
   );
   return { jobId: job.rows[0].id, finishesAt: finishes.toISOString(), outputQuality: outQ, opCostCents: opCost };
+}
+
+export async function companyRegion(tx: Pick<Tx, 'query'>, companyId: string): Promise<string> {
+  return (await tx.query<{ region: string }>('SELECT region FROM companies WHERE id = $1', [companyId])).rows[0].region;
+}
+
+/**
+ * Charges a cycle's operating cost: catalog op cost × level × admin overhead, split into wages (40% at wage
+ * index 1.0, scaled by the home region's wage index) and other operating costs. Returns the total in cents.
+ */
+export async function chargeOpCost(tx: Tx, companyId: string, buildingName: string, baseCents: number): Promise<number> {
+  const levels = await tx.query<{ total: number }>('SELECT COALESCE(SUM(level), 0)::int AS total FROM buildings WHERE company_id = $1', [companyId]);
+  const split = opCostSplit(baseCents * adminOverhead(levels.rows[0].total), await companyRegion(tx, companyId));
+  const cash = await companyAccount(tx, companyId, 'cash');
+  const wages = Math.round(split.wages);
+  const other = Math.round(split.other);
+  await transfer(tx, 'op_cost', `${buildingName}: operating cost`, cash, await systemAccount(tx, 'sink:operations'), other);
+  await transfer(tx, 'wages', `${buildingName}: wages`, cash, await systemAccount(tx, 'sink:wages'), wages);
+  return wages + other;
 }
 
 export interface Collected {

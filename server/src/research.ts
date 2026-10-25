@@ -3,6 +3,7 @@ import type { Db, Tx } from './db';
 import { badRequest } from './errors';
 import { takeGoods } from './inventory';
 import { awardXp } from './xp';
+import { cycleOutput } from '../../shared/regions';
 
 type Q = Pick<Tx, 'query'>;
 
@@ -73,7 +74,7 @@ export async function applyPoints(tx: Tx, companyId: string, family: string, poi
 export async function researchView(db: Db, companyId: string) {
   const [points, company, labs, onHand, rank, firsts, recent] = await Promise.all([
     researchPoints(db, companyId),
-    db.query<{ research_focus: FamilyId | null }>('SELECT research_focus FROM companies WHERE id = $1', [companyId]),
+    db.query<{ research_focus: FamilyId | null; region: string }>('SELECT research_focus, region FROM companies WHERE id = $1', [companyId]),
     db.query<{ id: string; name: string; level: number; cycle_minutes: number; qty: number; running: boolean }>(
       `SELECT b.id, b.name, b.level, bt.cycle_minutes, rl.qty,
               EXISTS (SELECT 1 FROM production_jobs j WHERE j.building_id = b.id AND j.state = 'running') AS running
@@ -100,13 +101,15 @@ export async function researchView(db: Db, companyId: string) {
       [companyId],
     ),
   ]);
-  const rpPerDay = labs.rows.reduce((s, l) => s + l.qty * l.level * ((24 * 60) / l.cycle_minutes), 0);
+  const region = company.rows[0].region;
+  const perCycle = (l: { qty: number; level: number }) => cycleOutput(l.qty, l.level, region, 'rnd_lab');
+  const rpPerDay = labs.rows.reduce((s, l) => s + perCycle(l) * ((24 * 60) / l.cycle_minutes), 0);
   return {
     thresholds: RESEARCH_THRESHOLDS,
     focus: company.rows[0].research_focus,
     rpOnHand: onHand.rows[0].qty,
     rpPerDay: labs.rows.length ? rpPerDay : 0,
-    labs: labs.rows.map((l) => ({ id: l.id, name: l.name, level: l.level, running: l.running, rpPerCycle: l.qty * l.level })),
+    labs: labs.rows.map((l) => ({ id: l.id, name: l.name, level: l.level, running: l.running, rpPerCycle: perCycle(l) })),
     innovation: { rank: rank.rows[0]?.rank ?? 1, of: rank.rows[0]?.of ?? 1, totalPoints: rank.rows[0]?.total ?? 0, firstBonusXp: FIRST_TO_TIER_XP },
     families: FAMILIES.map((f) => ({
       id: f.id,

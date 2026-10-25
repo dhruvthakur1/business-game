@@ -13,7 +13,7 @@ import { seasonSummary } from './season';
 type Q = Pick<Tx, 'query'>;
 
 /** Cash-account flows from running the business (before debt service). */
-export const OPERATING_KINDS = ['op_cost', 'upkeep', 'npc_purchase', 'npc_sale', 'order_lock', 'order_refund', 'order_cancel', 'trade_settlement'];
+export const OPERATING_KINDS = ['op_cost', 'wages', 'upkeep', 'npc_purchase', 'npc_sale', 'order_lock', 'order_refund', 'order_cancel', 'trade_settlement'];
 
 /** Net operating cash flow on the cash account between two instants. */
 export async function operatingFlowCents(q: Q, companyId: string, from: Date, to: Date = new Date()): Promise<number> {

@@ -247,7 +247,7 @@ export async function wealthView(db: Db, companyId: string) {
 }
 
 const REVENUE_KINDS = ['npc_sale', 'trade_settlement', 'contract_settlement'];
-const COST_KINDS = ['op_cost', 'upkeep', 'npc_purchase', 'order_lock', 'order_refund', 'order_cancel', 'contract_funding', 'contract_refund', 'contract_penalty'];
+const COST_KINDS = ['op_cost', 'wages', 'upkeep', 'npc_purchase', 'order_lock', 'order_refund', 'order_cancel', 'contract_funding', 'contract_refund', 'contract_penalty'];
 
 /**
  * Revenue and operating costs on the cash account for each of the last `days` game days (today included).

@@ -7,6 +7,7 @@ import { netPerDay, type Quality } from '../lib/economy';
 import { dec, num } from '../lib/format';
 import { PLOT_COLS } from '../../../shared/catalog';
 import { unlocksAt } from '../../../shared/levels';
+import { cycleOutput, opCostSplit } from '../../../shared/regions';
 
 export type ToastTone = 'ok' | 'info' | 'bad';
 export interface Toast {
@@ -18,22 +19,22 @@ export interface Toast {
 
 export type SessionStatus = 'loading' | 'signedOut' | 'ready' | 'offline';
 
-/** Level-scaled net/day at reference prices, for list views. */
-function estimatedNet(typeId: string, level: number) {
+/** Level-scaled net/day at reference prices in the home region (yield bonus, wage index), for list views. */
+function estimatedNet(typeId: string, level: number, region: string) {
   const t = buildingTypeById(typeId);
   if (!t.outputs[0]) return 0;
   return netPerDay({
-    output: { qty: t.outputs[0].qty * level, price: productById(t.outputs[0].productId).refPrice },
+    output: { qty: cycleOutput(t.outputs[0].qty, level, region, t.id), price: productById(t.outputs[0].productId).refPrice },
     inputs: t.inputs.map((i) => ({ qty: i.qty * level, price: productById(i.productId).refPrice })),
-    opCost: t.opCost * level,
+    opCost: opCostSplit(t.opCost * level, region).total,
     upkeepPerDay: t.upkeepPerDay * level,
     cyclesPerDay: 24 / t.cycleHours,
   });
 }
 
 /** Converts a server building + the current time into the view model the screens use. */
-function toView(b: ServerBuilding, now: number, timeScale: number): Building {
-  const base = { id: b.id, typeId: b.typeId, name: b.name, level: b.level, plot: { col: b.plot % PLOT_COLS, row: Math.floor(b.plot / PLOT_COLS) }, netPerDay: estimatedNet(b.typeId, b.level) };
+function toView(b: ServerBuilding, now: number, timeScale: number, region: string): Building {
+  const base = { id: b.id, typeId: b.typeId, name: b.name, level: b.level, plot: { col: b.plot % PLOT_COLS, row: Math.floor(b.plot / PLOT_COLS) }, netPerDay: estimatedNet(b.typeId, b.level, region) };
   if (!b.job) return { ...base, status: 'idle', progress: 0, minutesLeft: 0 };
   const start = Date.parse(b.job.startedAt);
   const end = Date.parse(b.job.finishesAt);
@@ -178,7 +179,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const timeScale = me?.timeScale ?? 1;
   const serverNow = now + clockSkew.current;
-  const buildings = useMemo(() => (me ? me.buildings.map((b) => toView(b, serverNow, timeScale)) : []), [me, serverNow, timeScale]);
+  const buildings = useMemo(() => (me ? me.buildings.map((b) => toView(b, serverNow, timeScale, me.company.region)) : []), [me, serverNow, timeScale]);
   const ready = useMemo(() => buildings.filter((b) => b.status === 'ready'), [buildings]);
 
   const value: GameApi = {

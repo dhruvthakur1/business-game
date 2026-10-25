@@ -13,9 +13,10 @@ import { api } from '../api/client';
 import { BUILDING_FAMILY, FAMILIES, RESEARCH_PRODUCT, researchBonus, researchTier } from '../../../shared/research';
 import { designEconomics, VARIANT_TIERS, variantInputQty } from '../../../shared/designer';
 import { RetailPanel } from './RetailPanel';
+import { cycleOutput, opCostSplit, regionRule, WORKERS_PER_LEVEL, yieldMultiplier } from '../../../shared/regions';
 
 /** Mirrors server/src/production.ts: research bonus, and a design's extra inputs, materials and price. */
-function economics(type: BuildingType, level: number, lotQ: number, bonus: number, design?: ServerDesign) {
+function economics(type: BuildingType, level: number, lotQ: number, bonus: number, region: string, design?: ServerDesign) {
   const out = type.outputs[0];
   const outQ = out.productId === RESEARCH_PRODUCT ? 0 : outputQuality([lotQ], bonus);
   const pOut = (design ? design.priceCents / 100 : productById(out.productId).refPrice) * npcPriceMultiplier(outQ);
@@ -24,14 +25,15 @@ function economics(type: BuildingType, level: number, lotQ: number, bonus: numbe
     price: productById(i.productId).refPrice * npcPriceMultiplier(lotQ),
   }));
   const materials = design ? designEconomics(design).materials * VARIANT_TIERS[design.tier].inputMult * out.qty * level : 0;
+  const outQty = cycleOutput(out.qty, level, region, type.id);
   const net = netPerDay({
-    output: { qty: out.qty * level, price: pOut },
+    output: { qty: outQty, price: pOut },
     inputs,
-    opCost: type.opCost * level + materials,
+    opCost: opCostSplit(type.opCost * level, region).total + materials,
     upkeepPerDay: type.upkeepPerDay * level,
     cyclesPerDay: 24 / type.cycleHours,
   });
-  return { outQ, pOut, net, materials, revenue: out.qty * level * pOut * 0.98 };
+  return { outQ, pOut, net, materials, outQty, revenue: outQty * pOut * 0.98 };
 }
 
 export function BuildingDetail() {
@@ -69,8 +71,13 @@ export function BuildingDetail() {
   const canStart = hasRecipe && b.status === 'idle' && missing.length === 0 && (!primary || lots.length > 0);
 
   const bonus = family ? researchBonus(tier, lotQ) : 0;
-  const now = hasRecipe ? economics(type, b.level, lotQ, bonus, design) : null;
-  const upgraded = hasRecipe ? economics(type, b.level + 1, lotQ, bonus, design) : null;
+  const region = company?.region ?? 'north';
+  const regionInfo = regionRule(region);
+  const regionYield = yieldMultiplier(region, type.id);
+  const ops = opCostSplit(type.opCost * b.level, region);
+  const outQty = (level: number) => (type.outputs[0] ? cycleOutput(type.outputs[0].qty, level, region, type.id) : 0);
+  const now = hasRecipe ? economics(type, b.level, lotQ, bonus, region, design) : null;
+  const upgraded = hasRecipe ? economics(type, b.level + 1, lotQ, bonus, region, design) : null;
   const upgradePayback = now && upgraded && upgraded.net > now.net ? nextCost / (upgraded.net - now.net) : null;
   const outName = design ? design.name : type.outputs[0] ? productById(type.outputs[0].productId).name.toLowerCase() : '';
 
@@ -114,10 +121,12 @@ export function BuildingDetail() {
           <div style={{ padding: 20, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '14px 20px', fontSize: 13 }}>
             <Spec label="Category" value={<TierChip tier={type.tag} />} />
             <Spec label="Cycle" value={`${type.cycleHours}h · ${24 / type.cycleHours}/day`} />
-            <Spec label="Output / cycle" value={type.outputs[0] ? `${num(type.outputs[0].qty * b.level)} ${outName}` : '—'} />
+            <Spec label="Output / cycle" value={type.outputs[0] ? `${num(outQty(b.level))} ${outName}` : '—'} />
             {family && <Spec label="Research" value={`${familyName} · Q${tier}`} />}
-            <Spec label="Workers" value={num(b.level * 10)} />
-            <Spec label="Op cost / cycle" value={`${num(type.opCost * b.level)} CR`} />
+            <Spec label="Workers" value={num(b.level * WORKERS_PER_LEVEL)} />
+            <Spec label="Op cost / cycle" value={`${num(ops.total)} CR`} />
+            <Spec label="Wages / cycle" value={`${num(ops.wages)} CR · ×${regionInfo.wageIndex}`} />
+            <Spec label={`${regionInfo.name} region`} value={regionYield !== 1 ? `+${Math.round((regionYield - 1) * 100)}% output` : 'No output bonus'} />
             <Spec label="Est. net / day" value={b.netPerDay ? `+${num(b.netPerDay)}` : '—'} />
           </div>
         </Card>
@@ -218,7 +227,7 @@ export function BuildingDetail() {
                 <div className="inset stack-sm">
                   <span className="small muted">Value / cycle at ref (after 2% fee)</span>
                   <span className="stat-value sm">{num(now.revenue)} CR</span>
-                  <span className="small muted">{num(type.outputs[0].qty * b.level)} × {dec(now.pOut)} × 0.98{now.materials ? ` · materials ${num(now.materials)} CR` : ''}</span>
+                  <span className="small muted">{num(now.outQty)} × {dec(now.pOut)} × 0.98{now.materials ? ` · materials ${num(now.materials)} CR` : ''}</span>
                 </div>
                 <div className="inset stack-sm">
                   <span className="small muted">Projected net / day</span>
@@ -239,7 +248,7 @@ export function BuildingDetail() {
       <Card title={`Upgrade to Lv ${b.level + 1}`}>
         <div className="grid-auto-sm">
           <Row label="Cost" value={`${num(nextCost)} CR`} />
-          {type.outputs[0] && <Row label="Output" value={<>{num(type.outputs[0].qty * b.level)} → <span className="gain">{num(type.outputs[0].qty * (b.level + 1))}</span></>} />}
+          {type.outputs[0] && <Row label="Output" value={<>{num(outQty(b.level))} → <span className="gain">{num(outQty(b.level + 1))}</span></>} />}
           {upgradePayback && <Row label="Payback" value={`≈ ${Math.round(upgradePayback)} days`} />}
         </div>
         <span className="small muted">Cost = {num(type.buildCost)} × 1.12^{b.level}. From Lv 10, 30% will be paid in construction units.</span>

@@ -9,23 +9,24 @@ import { netPerDay, paybackDays } from '../lib/economy';
 import { dec, duration, num } from '../lib/format';
 import { useGame } from '../state/game';
 import { STARTING_CAPITAL } from '../../../shared/catalog';
+import { cycleOutput, opCostSplit, REGION_RULES, type RegionId } from '../../../shared/regions';
 
 const farm = buildingTypeById('farm');
 const SEEDS = { qty: 60, price: 1.2 };
 const FERT = { qty: 20, price: 4 };
 const INPUT_COST = SEEDS.qty * SEEDS.price + FERT.qty * FERT.price;
-const FARM_NET = netPerDay({ output: { qty: 100, price: 4.5 }, inputs: [SEEDS, FERT], opCost: farm.opCost, upkeepPerDay: farm.upkeepPerDay });
+const farmWheat = (region: string) => cycleOutput(100, 1, region, 'farm');
+const farmNet = (region: string) =>
+  netPerDay({ output: { qty: farmWheat(region), price: 4.5 }, inputs: [SEEDS, FERT], opCost: opCostSplit(farm.opCost, region).total, upkeepPerDay: farm.upkeepPerDay });
 
-const REGIONS = [
-  { id: 'north', name: 'North', tag: 'Recommended', bonus: '+10% agriculture yield', note: 'Best for a food start' },
-  { id: 'east', name: 'East', tag: '', bonus: 'Mining bonus', note: 'Coal, iron, quarries' },
-  { id: 'south', name: 'South', tag: '', bonus: 'Ports & logistics', note: 'Cheaper freight hubs' },
-  { id: 'west', name: 'West', tag: '', bonus: 'Tech & finance', note: 'Wage index 1.3' },
-];
+const REGIONS = (Object.keys(REGION_RULES) as RegionId[]).map((id) => ({
+  ...REGION_RULES[id],
+  tag: id === 'north' ? 'Recommended' : '',
+}));
 
 const STEPS = [
   { title: 'Name your company', lead: `Every empire starts with a name and an account. You get ${num(STARTING_CAPITAL)} CR of welcome capital.`, tip: 'Pick something you will be happy to see on a leaderboard. Your email is never shown to other players.' },
-  { title: 'Choose a home region', lead: 'Your first 12 plots are here. Shipping inside a region takes 1 hour; between regions, 4 hours plus freight.', tip: 'Regional bonuses are not simulated yet; North is the classic food start.' },
+  { title: 'Choose a home region', lead: 'Your first 12 plots are here. Each region has a production bonus and a wage index that scales the wages part of every op cost.', tip: 'North is the classic food start: farms yield 10% more. Shipping between regions arrives in a later update.' },
   { title: 'Buy your first building', lead: 'Farms are cheap, fast and supply everyone else. Buildings run one 4-hour job at a time.', tip: 'Long-term, the mill and bakery earn more. The farm feeds them.' },
   { title: 'Stock up on inputs', lead: 'Production takes its inputs from your warehouse when a job starts. Buy one cycle from the NPC vendor.', tip: 'Later, other players may sell seeds cheaper on the exchange.' },
   { title: 'Start your first harvest', lead: 'Press start and the clock runs on the server while you are away.', tip: 'Collect from Headquarters when the job turns Ready.' },
@@ -141,8 +142,8 @@ export function Onboarding() {
               {REGIONS.map((r) => (
                 <button key={r.id} type="button" role="radio" aria-checked={r.id === region} disabled={created} className="option" style={{ minHeight: 120, padding: 18, gap: 6, background: r.id === region ? undefined : 'var(--panel)' }} onClick={() => setRegion(r.id)}>
                   <span className="row-between"><span className="disp" style={{ fontSize: 20, fontWeight: 600 }}>{r.name}</span><span className="goldtx" style={{ fontSize: 11, fontWeight: 700 }}>{r.tag}</span></span>
-                  <span style={{ color: 'var(--text-soft)' }}>{r.bonus}</span>
-                  <span className="small muted">{r.note}</span>
+                  <span style={{ color: 'var(--text-soft)' }}>{r.bonusLabel}</span>
+                  <span className="small muted">{r.note} · wages ×{r.wageIndex}</span>
                 </button>
               ))}
             </div>
@@ -154,7 +155,7 @@ export function Onboarding() {
                 <div className="art-stage" style={{ paddingTop: 8 }}><img src={farm.art} alt="Grain Farm" width={240} height={216} /></div>
                 <div className="stack-sm" style={{ padding: 18 }}>
                   <div className="row-between"><strong className="disp" style={{ fontSize: 20, fontWeight: 600 }}>Grain Farm</strong><span className="goldtx" style={{ fontSize: 11, fontWeight: 700 }}>RECOMMENDED</span></div>
-                  <span className="muted">60 seeds + 20 fertilizer → 100 wheat every 4h · about +{num(FARM_NET)} CR/day · pays back in about {Math.round(paybackDays(farm.buildCost, FARM_NET))} days</span>
+                  <span className="muted">60 seeds + 20 fertilizer → {farmWheat(region)} wheat every 4h · about +{num(farmNet(region))} CR/day · pays back in about {Math.round(paybackDays(farm.buildCost, farmNet(region)))} days</span>
                   <button
                     type="button"
                     className="btn btn-primary btn-lg"
@@ -212,7 +213,7 @@ export function Onboarding() {
                 <div className="row" style={{ fontSize: 14 }}>
                   <span className="chip" style={{ background: 'var(--t0-bg)', color: 'var(--t0-fg)', padding: '8px 12px' }}>60 seeds + 20 fertilizer</span>
                   <span className="muted">→</span>
-                  <span className="chip" style={{ background: 'var(--t1-bg)', color: 'var(--t1-fg)', padding: '8px 12px' }}>100 wheat</span>
+                  <span className="chip" style={{ background: 'var(--t1-bg)', color: 'var(--t1-fg)', padding: '8px 12px' }}>{farmWheat(region)} wheat</span>
                 </div>
                 <ProgressBar value={job?.progress ?? 0} size="thick" label="First harvest progress" />
                 <span className="mono small muted">

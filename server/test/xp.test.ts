@@ -45,9 +45,9 @@ describe('XP awards', () => {
     await withTx(db, (tx) => startJob(tx, c.id, farm.id));
     await finishNow(farm.id);
     const [res] = await withTx(db, (tx) => collect(tx, c.id, { restart: false }));
-    // 100 wheat × 4.50 − (60 × 1.20 + 20 × 4.00) = 298 CR → × 0.2 = 59 XP
-    expect(res.xp).toBe(59);
-    expect((await company(c.id)).xp).toBe(59);
+    // 110 wheat (North +10%) × 4.50 − (60 × 1.20 + 20 × 4.00) = 343 CR → × 0.2 = 68 XP
+    expect(res.xp).toBe(68);
+    expect((await company(c.id)).xp).toBe(68);
   });
 
   it('levels up when crossing a threshold, and never goes down', async () => {

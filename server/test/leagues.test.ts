@@ -84,9 +84,10 @@ describe('weeks and groups', () => {
     await farmCycle(a.id, farm);
     await farmCycle(b.id);
     const rows = await groupStandings(db, w, ma!.group_id, 'industry');
-    expect(rows.map((r) => [r.companyId, r.metric, r.rank])).toEqual([[a.id, 596, 1], [b.id, 298, 2]]);
+    // Each North farm cycle adds 110 × 4.50 − 152 = 343 CR.
+    expect(rows.map((r) => [r.companyId, r.metric, r.rank])).toEqual([[a.id, 686, 1], [b.id, 343, 2]]);
     // Baseline P90 for a startup with no history is 25,000 CR.
-    expect(rows[0].points).toBe(contestPoints(596, 25_000));
+    expect(rows[0].points).toBe(contestPoints(686, 25_000));
   });
 });
 

@@ -46,7 +46,7 @@ describe('HTTP API', () => {
     const body = me.json();
     expect(body.cashCents).toBe(100_000_00 - 30_000_00 - 152_00 - 120_00);
     expect(body.buildings).toHaveLength(1);
-    expect(body.buildings[0].job.outputQty).toBe(100);
+    expect(body.buildings[0].job.outputQty).toBe(110); // North farm bonus
 
     const activity = await app.inject({ method: 'GET', url: '/api/activity', headers: auth });
     expect(activity.json().items.map((i: { kind: string }) => i.kind)).toContain('starting_capital');

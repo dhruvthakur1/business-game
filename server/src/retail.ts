@@ -1,4 +1,3 @@
-import { adminOverhead } from '../../shared/economy';
 import { XP_CAPS, XP_PER_CR_TRADE } from '../../shared/levels';
 import { reputationPriceMultiplier } from '../../shared/designer';
 import { LUXURY_STORE, luxuryBand, STORE_ITEM_PREFIX, SUPERMARKET, supermarketBand, supermarketUnits } from '../../shared/retail';
@@ -10,6 +9,7 @@ import { companyAccount, post, systemAccount, transfer } from './ledger';
 import { loadBuildingType, loadProduct, type BuildingTypeRow } from './catalog';
 import { productReputation } from './brands';
 import { awardXp } from './xp';
+import { chargeOpCost } from './production';
 
 type Q = Pick<Tx, 'query'>;
 
@@ -89,9 +89,7 @@ export async function startShelfJob(tx: Tx, companyId: string, buildingId: strin
   const band = await shelfBand(tx, b.shelf_product_id, b.shelf_quality);
   const price = Math.max(band.minCents, Math.min(band.maxCents, Number(b.shelf_price_cents)));
 
-  const levels = await tx.query<{ total: number }>('SELECT COALESCE(SUM(level), 0)::int AS total FROM buildings WHERE company_id = $1', [companyId]);
-  const opCost = Math.round(type.opCostCents * b.level * adminOverhead(levels.rows[0].total));
-  await transfer(tx, 'op_cost', `${b.name}: operating cost`, await companyAccount(tx, companyId, 'cash'), await systemAccount(tx, 'sink:operations'), opCost);
+  const opCost = await chargeOpCost(tx, companyId, b.name, type.opCostCents * b.level);
 
   const now = new Date();
   const finishes = new Date(now.getTime() + gameMinutesToMs(type.cycleMinutes));

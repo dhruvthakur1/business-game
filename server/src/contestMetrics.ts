@@ -103,7 +103,7 @@ export async function computeMetric(q: Q, contest: ContestId, ctx: MetricContext
         q.query<{ kind: string; v: number }>(
           `SELECT t.kind, COALESCE(-SUM(e.amount_cents), 0)::bigint AS v
            FROM ledger_entries e JOIN ledger_txns t ON t.id = e.txn_id JOIN accounts a ON a.id = e.account_id
-           WHERE a.company_id = $1 AND a.kind = 'cash' AND t.kind IN ('op_cost', 'upkeep', 'npc_purchase') AND t.created_at >= $2 AND t.created_at < $3
+           WHERE a.company_id = $1 AND a.kind = 'cash' AND t.kind IN ('op_cost', 'wages', 'upkeep', 'npc_purchase') AND t.created_at >= $2 AND t.created_at < $3
            GROUP BY t.kind`, [me, from, to]),
       ]);
       const revenue = Number(npc.rows[0].v) + Number(tradesSold.rows[0].v) + Number(cSold.rows[0].v);

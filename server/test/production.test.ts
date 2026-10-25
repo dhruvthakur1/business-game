@@ -31,12 +31,13 @@ describe('production', () => {
     await finishNow(farm.id);
     const first = await withTx(db, (tx) => collect(tx, c.id, { restart: false }));
     expect(first).toHaveLength(1);
-    expect(first[0]).toMatchObject({ productId: 'wheat', qty: 100, quality: 0 });
-    expect(await goods(db, c.id, 'wheat', 0)).toBe(100);
+    // North farms yield +10%: 100 × 1.1 = 110 wheat.
+    expect(first[0]).toMatchObject({ productId: 'wheat', qty: 110, quality: 0 });
+    expect(await goods(db, c.id, 'wheat', 0)).toBe(110);
 
     // Collecting again never double-credits.
     expect(await withTx(db, (tx) => collect(tx, c.id, { restart: false }))).toEqual([]);
-    expect(await goods(db, c.id, 'wheat', 0)).toBe(100);
+    expect(await goods(db, c.id, 'wheat', 0)).toBe(110);
     expect((await ledgerTotal(db)).balances).toBe(0);
   });
 
