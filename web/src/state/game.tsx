@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError, setToken, getToken, toCr } from '../api/client';
 import type { ActivityItem, CollectResult, MeResponse, PlaceOrderResult, ServerBuilding } from '../api/types';
-import { buildingTypeById, productById } from '../data/catalog';
+import { buildingTypeById, productById, registerDesigns } from '../data/catalog';
 import { START_WALLET } from '../data/mock';
 import type { Building } from '../data/types';
 import { netPerDay, type Quality } from '../lib/economy';
@@ -127,6 +127,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         notify(`Level up! Lv ${state.company.level}`, unlocked.length ? `Unlocked: ${unlocked.join(', ')}.` : 'Keep producing and trading to reach the next unlock.', 'info');
       }
       lastLevel.current = { company: state.company.id, level: state.company.level };
+      registerDesigns(state.designs);
       setMe(state);
       setActivity(act.items);
       setStatus('ready');
@@ -219,12 +220,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     collect: async (ids) => {
       const res = await act(() => api<CollectResult>('/collect', { body: { buildingIds: ids, restart: true } }));
       if (!res || res.collected.length === 0) return;
-      const goods = res.collected.map((c) => `${num(c.qty)} ${productById(c.productId).name.toLowerCase()}`).join(', ');
+      const goods = res.collected.filter((c) => !c.researchFamily).map((c) => `${num(c.qty)} ${productById(c.productId).name.toLowerCase()}`).join(', ');
+      const rp = res.collected.filter((c) => c.researchFamily).reduce((s, c) => s + c.qty, 0);
       const stalled = res.collected.filter((c) => !c.restarted).length;
       const xp = res.collected.reduce((s, c) => s + c.xp, 0);
       notify(
         `Collected ${res.collected.length} job${res.collected.length > 1 ? 's' : ''}${xp ? ` · +${num(xp)} XP` : ''}`,
-        `${goods} added to your warehouse.${stalled ? ` ${stalled} building${stalled > 1 ? 's' : ''} need inputs to restart.` : ' Jobs restarted.'}`,
+        `${goods ? `${goods} added to your warehouse.` : ''}${rp ? ` ${num(rp)} research points applied to your lab focus.` : ''}${stalled ? ` ${stalled} building${stalled > 1 ? 's' : ''} need inputs to restart.` : ' Jobs restarted.'}`,
       );
     },
     startJob: async (buildingId, inputQuality) => {

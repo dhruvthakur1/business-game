@@ -1,4 +1,5 @@
 import { BANKRUPTCY, DELINQUENCY, OVERDRAFT, RECEIVERSHIP } from '../../shared/bank';
+import { updateReputation } from './brands';
 import { creditScore } from '../../shared/economy';
 import { applyPayment, creditProfile, logLoanEvent, openLoans, saveLoan, type LoanRow } from './bank';
 import { type Db, type Tx, withTx } from './db';
@@ -171,7 +172,10 @@ export async function closeDay(tx: Tx, companyId: string, day: number): Promise<
     report.bankrupt = await receivership(tx, companyId, day);
   }
 
-  // 5. Snapshot
+  // 5. Brand reputation
+  await updateReputation(tx, companyId, day);
+
+  // 6. Snapshot
   const service = (await openLoans(tx, companyId)).filter((l) => l.product !== 'overdraft').reduce((s, l) => s + Number(l.installment_cents), 0);
   await tx.query(
     `INSERT INTO company_days (company_id, day, operating_flow_cents, upkeep_cents, debt_service_cents, cash_cents)

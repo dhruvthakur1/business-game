@@ -6,10 +6,11 @@ import { stars } from '../lib/format';
 
 const TIER_LABEL: Record<SectorTag, string> = {
   T0: 'T0 Raw', T1: 'T1 Primary', T2: 'T2 Processed', T3: 'T3 Components', T4: 'T4 Consumer',
-  T5: 'T5 Services', T6: 'T6 Capital', T7: 'T7 Luxury', Energy: 'Energy', Retail: 'Retail',
+  T5: 'T5 Services', T6: 'T6 Capital', T7: 'T7 Luxury', Energy: 'Energy', Retail: 'Retail', Research: 'Research',
 };
 
 const tierVars = (tag: SectorTag): [string, string] => {
+  if (tag === 'Research') return ['var(--info-wash)', 'var(--info-soft)'];
   if (tag === 'Energy') return ['var(--goldl-bg)', 'var(--gold)'];
   if (tag === 'Retail') return ['#0f2a20', 'var(--gain-soft)'];
   const k = tag.toLowerCase();
@@ -25,7 +26,7 @@ export function TierChip({ tier, short }: { tier: SectorTag; short?: boolean }) 
   );
 }
 
-export const tierSwatch = (tier: SectorTag) => (tier === 'Energy' || tier === 'Retail' ? 'var(--gold)' : `var(--${tier.toLowerCase()})`);
+export const tierSwatch = (tier: SectorTag) => (tier === 'Research' ? 'var(--info-soft)' : tier === 'Energy' || tier === 'Retail' ? 'var(--gold)' : `var(--${tier.toLowerCase()})`);
 
 const LEAGUE_VAR: Record<LeagueName, string> = {
   Bronze: 'bronze', Silver: 'silver', Gold: 'goldl', Platinum: 'platinum', Diamond: 'diamond', Master: 'master', Tycoon: 'tycoon',

@@ -1,4 +1,6 @@
 /** Response shapes of the Mercantile API (see server/src/app.ts). Money is in cents. */
+import type { TemplateId, VariantTier } from '../../../shared/designer';
+import type { FamilyId } from '../../../shared/research';
 
 export interface ServerCompany {
   id: string;
@@ -22,6 +24,7 @@ export interface ServerBuilding {
   name: string;
   level: number;
   plot: number;
+  designId: string | null;
   job: ServerJob | null;
 }
 
@@ -56,6 +59,62 @@ export interface MeResponse {
   openOrders: number;
   inventory: InventoryLot[];
   buildings: ServerBuilding[];
+  research: Record<FamilyId, number>;
+  designs: ServerDesign[];
+}
+
+/** A branded product made with the product designer. Its id is a product id. */
+export interface ServerDesign {
+  id: string;
+  name: string;
+  priceCents: number;
+  brandId: string;
+  brandName: string;
+  companyId: string;
+  templateId: TemplateId;
+  buildingTypeId: string;
+  baseProductId: string;
+  tier: VariantTier;
+  slots: Record<string, number>;
+  art: string;
+}
+
+export interface ResearchFamilyView {
+  id: FamilyId;
+  name: string;
+  points: number;
+  tier: number;
+  next: number | null;
+  planned: string[];
+  firsts: { tier: number; companyName: string; mine: boolean; at: string }[];
+}
+
+export interface ResearchResponse {
+  thresholds: number[];
+  focus: FamilyId | null;
+  rpOnHand: number;
+  rpPerDay: number;
+  labs: { id: string; name: string; level: number; running: boolean; rpPerCycle: number }[];
+  innovation: { rank: number; of: number; totalPoints: number; firstBonusXp: number };
+  families: ResearchFamilyView[];
+  recent: { family: FamilyId; points: number; source: 'lab' | 'applied'; at: string }[];
+}
+
+export interface BrandView {
+  id: string;
+  name: string;
+  logo: number;
+  reputation: number;
+  designs: number;
+  lastDay: { units: number; buyers: number } | null;
+  idleDays: number;
+}
+
+export interface DesignerResponse {
+  rules: { minLength: number; maxLength: number; fee: number; maxPerCompany: number; maxDesignsPerBrand: number; logoCount: number; startingReputation: number };
+  brands: BrandView[];
+  designs: (ServerDesign & { materials: string[]; stock: number; buildings: string[] })[];
+  buildings: { id: string; name: string; typeId: string; designId: string | null }[];
 }
 
 export interface ActivityItem {
@@ -112,7 +171,7 @@ export interface PlaceOrderResult {
 }
 
 export interface CollectResult {
-  collected: { buildingId: string; productId: string; qty: number; quality: number; restarted: boolean; restartError?: string; xp: number }[];
+  collected: { buildingId: string; productId: string; qty: number; quality: number; researchFamily?: string; restarted: boolean; restartError?: string; xp: number }[];
 }
 
 export type LoanStatus = 'active' | 'late' | 'restructure_offered' | 'collections' | 'repaid' | 'defaulted';

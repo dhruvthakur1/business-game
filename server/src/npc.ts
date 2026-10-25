@@ -8,6 +8,8 @@ import { loadProduct } from './catalog';
 import { gameDay } from './time';
 import { awardXp } from './xp';
 import { XP_CAPS, XP_PER_CR_TRADE } from '../../shared/levels';
+import { reputationPriceMultiplier } from '../../shared/designer';
+import { productReputation } from './brands';
 
 const MAX_NPC_QTY = 100_000;
 
@@ -55,7 +57,9 @@ export async function npcSell(tx: Tx, companyId: string, productId: string, qty:
      ON CONFLICT (company_id, product_id, day) DO UPDATE SET qty = npc_sales.qty RETURNING qty`,
     [companyId, productId, day],
   );
-  const unit = product.refPriceCents * npcPriceMultiplier(quality);
+  // Branded designs sell for up to 20% more, depending on the brand's reputation.
+  const rep = await productReputation(tx, productId);
+  const unit = product.refPriceCents * npcPriceMultiplier(quality) * (rep === null ? 1 : reputationPriceMultiplier(rep));
   const proceeds = npcSaleValue(unit, prior.rows[0].qty, qty);
   await tx.query('UPDATE npc_sales SET qty = qty + $4 WHERE company_id = $1 AND product_id = $2 AND day = $3', [companyId, productId, day, qty]);
 

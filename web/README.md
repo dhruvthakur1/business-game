@@ -20,7 +20,7 @@ npm run build
 | `src/components/` | `AppShell` (sidebar, top bar, mobile tab bar, toasts), `PlotMap` (isometric plots), `ui.tsx` (chips, stat tiles, progress, stepper, segmented control, quality frame), `Icon` |
 | `src/lib/economy.ts` | Pure game formulas: net/day, upgrade cost, admin overhead, quality cap, EMI, credit score, rate tiers, reliability, contest points, value check, income tax, freight, prestige |
 | `src/lib/format.ts` | Number, trend and duration formatting |
-| `src/data/` | Catalog (products, building types), demo company state, contests, research, lifestyle ladders, designer templates |
+| `src/data/` | Catalog (products, building types, registered designs), demo company state, contests, lifestyle ladders, brand logos |
 | `src/state/game.tsx` | Client game store: cash, wallet, buildings with a demo clock (1 s = 1 game minute), loans, toasts |
 | `src/screens/` | Landing, Onboarding, Headquarters, BuildingDetail, Market, Contracts, Designer, Research, Bank, Leagues, Contests, Showroom, Catalog |
 | `public/art/` | Building and product SVGs copied from `../design/buildings` and `../design/products` |
@@ -41,5 +41,8 @@ and re-renders job progress every second. The session token is kept in `localSto
 
 Formulas and catalog data come from `../shared`, the same code the server uses.
 
-Still demo data (no server support yet): research,
-product designer and brands, showroom and personal wallet, and the HQ cash-flow chart.
+Research (`/app/research`) and the product designer (`/app/designer`) are server-backed. Branded designs are
+registered from `/api/me` so `productById` can name and draw them anywhere; building pages offer a recipe picker
+when the company has designs for that building.
+
+Still demo data (no server support yet): showroom and personal wallet, and the HQ cash-flow chart.

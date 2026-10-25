@@ -7,7 +7,8 @@ import { placeOrder } from './exchange';
 import { addGoods } from './inventory';
 import { toCents } from './ledger';
 import { npcSell } from './npc';
-import { buyBuilding, startJob } from './production';
+import { buyBuilding, setBuildingDesign, startJob } from './production';
+import { createDesign } from './brands';
 
 /** Upserts products, building types and recipes from shared/catalog.ts. Safe to run repeatedly. */
 export async function upsertCatalog(db: Db) {
@@ -48,6 +49,7 @@ export async function seedWorld(db: Db) {
   await upsertCatalog(db);
   const existing = await db.query("SELECT 1 FROM companies WHERE name = 'Northwind Holdings'");
   if (existing.rowCount) {
+    await seedResearchAndBrands(db);
     console.log('World already seeded; catalog refreshed.');
     return;
   }
@@ -119,7 +121,43 @@ export async function seedWorld(db: Db) {
       terms: { productId: 'mwh', qty: 15, minQuality: 0, priceCents: 4100, frequencyHours: 24, windowHours: 24, termDays: 7 },
     });
   });
+  await seedResearchAndBrands(db);
   console.log('Seeded catalog, 4 market makers and the Northwind Holdings demo company.');
+}
+
+/**
+ * Demo research and brands for Northwind: an R&D Lab focused on Food, some points in four families, and two
+ * brands with a premium bread design the bakery is making. Skipped if Northwind already has a brand.
+ */
+export async function seedResearchAndBrands(db: Db) {
+  const nw = (await db.query<{ id: string }>("SELECT id FROM companies WHERE name = 'Northwind Holdings' AND NOT is_npc")).rows[0];
+  if (!nw) return;
+  if ((await db.query('SELECT 1 FROM brands WHERE company_id = $1', [nw.id])).rowCount) return;
+  await withTx(db, async (tx) => {
+    const lab = await buyBuilding(tx, nw.id, 'rnd_lab');
+    await tx.query('UPDATE buildings SET level = 2 WHERE id = $1', [lab.id]);
+    await addGoods(tx, nw.id, 'mwh', 0, 20);
+    await startJob(tx, nw.id, lab.id);
+    await tx.query("UPDATE companies SET research_focus = 'food' WHERE id = $1", [nw.id]);
+    for (const [family, points] of [['agri', 1620], ['food', 410], ['metals', 260], ['energy', 90]] as const) {
+      await tx.query(
+        'INSERT INTO company_research (company_id, family, points) VALUES ($1, $2, $3) ON CONFLICT (company_id, family) DO NOTHING',
+        [nw.id, family, points],
+      );
+    }
+    await addGoods(tx, nw.id, 'research_points', 0, 320);
+
+    const brand = async (name: string, logo: number, rep: number) =>
+      (await tx.query<{ id: string }>(
+        'INSERT INTO brands (company_id, name, name_key, logo, reputation) VALUES ($1, $2, lower($2), $3, $4) RETURNING id',
+        [nw.id, name, logo, rep],
+      )).rows[0].id;
+    await brand('Northwind Atelier', 0, 64);
+    const bakehouse = await brand('Fieldline Bakehouse', 1, 41);
+    const loaf = await createDesign(tx, nw.id, { brandId: bakehouse, templateId: 'loaf', slots: { grain: 1, finish: 1 }, tier: 'premium', priceCents: 4400 });
+    const bakery = (await tx.query<{ id: string }>("SELECT id FROM buildings WHERE company_id = $1 AND building_type_id = 'bakery' LIMIT 1", [nw.id])).rows[0];
+    if (bakery) await setBuildingDesign(tx, nw.id, bakery.id, loaf.productId);
+  });
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

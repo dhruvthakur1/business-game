@@ -7,7 +7,9 @@ import { type Db, withTx } from './db';
 import { GameError, mapDbError, notFound } from './errors';
 import { cancelOrder, marketSummary, myOrders, orderBook, placeOrder, priceHistory } from './exchange';
 import { npcBuy, npcSell } from './npc';
-import { buyBuilding, collect, startJob, upgradeBuilding } from './production';
+import { buyBuilding, collect, setBuildingDesign, startJob, upgradeBuilding } from './production';
+import { applyPoints, researchView, setFocus } from './research';
+import { allDesigns, brandNameStatus, createDesign, designerView, registerBrand } from './brands';
 import { activity, companyState } from './state';
 import { bankOverview, repayLoan, restructureLoan, takeLoan } from './bank';
 import { closeNextDay } from './daily';
@@ -54,7 +56,7 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
 
   // ---------- Public ----------
   app.get('/api/health', async () => ({ ok: true, timeScale: config.timeScale }));
-  app.get('/api/catalog', async () => ({ products: PRODUCT_DEFS, buildingTypes: BUILDING_TYPE_DEFS }));
+  app.get('/api/catalog', async () => ({ products: PRODUCT_DEFS, buildingTypes: BUILDING_TYPE_DEFS, designs: await allDesigns(db) }));
   app.get('/api/market', async () => ({ products: await marketSummary(db) }));
   app.get('/api/market/:productId', async (req) => {
     const id = productId.parse((req.params as { productId: string }).productId);
@@ -261,6 +263,54 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
       );
     });
     return { processed: await processContracts(db) };
+  });
+
+  // ---------- Research ----------
+  app.get('/api/research', async (req) => researchView(db, req.company.id));
+
+  app.post('/api/research/focus', async (req) => {
+    const body = z.object({ family: z.string().max(20).nullable() }).parse(req.body);
+    return withTx(db, (tx) => setFocus(tx, req.company.id, body.family));
+  });
+
+  app.post('/api/research/apply', async (req) => {
+    const body = z.object({ family: z.string().max(20), points: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => applyPoints(tx, req.company.id, body.family, body.points));
+  });
+
+  // ---------- Product designer & brands ----------
+  app.get('/api/designer', async (req) => designerView(db, req.company.id));
+
+  app.get('/api/brands/check', async (req) => {
+    const q = z.object({ name: z.string().max(60) }).parse(req.query);
+    const problem = await brandNameStatus(db, q.name);
+    return { ok: problem === null, problem };
+  });
+
+  app.post('/api/brands', async (req, reply) => {
+    const body = z.object({ name: z.string().max(60), logo: z.number().int() }).parse(req.body);
+    const result = await withTx(db, (tx) => registerBrand(tx, req.company.id, body));
+    return reply.status(201).send(result);
+  });
+
+  app.post('/api/designs', async (req, reply) => {
+    const body = z
+      .object({
+        brandId: uuid,
+        templateId: z.enum(['loaf', 'car', 'watch']),
+        slots: z.record(z.string().max(20), z.number().int()),
+        tier: z.enum(['basic', 'premium', 'luxury']),
+        priceCents: z.number().int().positive(),
+      })
+      .parse(req.body);
+    const result = await withTx(db, (tx) => createDesign(tx, req.company.id, body));
+    return reply.status(201).send(result);
+  });
+
+  app.post('/api/buildings/:id/design', async (req) => {
+    const id = uuid.parse((req.params as { id: string }).id);
+    const body = z.object({ designId: z.string().max(40).nullable() }).parse(req.body);
+    return withTx(db, (tx) => setBuildingDesign(tx, req.company.id, id, body.designId));
   });
 
   // ---------- Leagues & contests ----------

@@ -6,6 +6,8 @@ import { listBuildings } from './production';
 import { gameDayMs } from './time';
 import { xpSummary } from './xp';
 import { leagueSummary } from './leagues';
+import { allDesigns } from './brands';
+import { researchPoints } from './research';
 
 type Q = Pick<Tx, 'query'>;
 
@@ -70,7 +72,7 @@ export async function debtCents(q: Q, companyId: string): Promise<number> {
 
 /** Everything the client needs to render the company dashboard in one round trip. */
 export async function companyState(db: Db, company: Company) {
-  const [accounts, inventory, buildings, assets, debt, flow, orders, flags, xp, league] = await Promise.all([
+  const [accounts, inventory, buildings, assets, debt, flow, orders, flags, xp, league, research, designs] = await Promise.all([
     db.query<{ kind: string; balance_cents: number }>('SELECT kind, balance_cents FROM accounts WHERE company_id = $1', [company.id]),
     listInventory(db, company.id),
     listBuildings(db, company.id),
@@ -81,6 +83,8 @@ export async function companyState(db: Db, company: Company) {
     db.query<{ upkeep_arrears_cents: number }>('SELECT upkeep_arrears_cents FROM companies WHERE id = $1', [company.id]),
     xpSummary(db, company.id),
     leagueSummary(db, company.id),
+    researchPoints(db, company.id),
+    allDesigns(db),
   ]);
   const bal = (kind: string) => accounts.rows.find((a) => a.kind === kind)?.balance_cents ?? 0;
 
@@ -100,6 +104,10 @@ export async function companyState(db: Db, company: Company) {
     openOrders: orders.rows[0].n,
     inventory,
     buildings,
+    /** Research points per family (drives the quality bonus preview). */
+    research,
+    /** Branded products on the server, so any design in the warehouse or market can be named and drawn. */
+    designs,
   };
 }
 

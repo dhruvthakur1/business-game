@@ -8,28 +8,34 @@ import type { BuildingType } from '../data/types';
 import { netPerDay, npcPriceMultiplier, outputQuality, upgradeCost } from '../lib/economy';
 import { dec, duration, num } from '../lib/format';
 import { useGame } from '../state/game';
+import type { ServerDesign } from '../api/types';
+import { api } from '../api/client';
+import { BUILDING_FAMILY, FAMILIES, RESEARCH_PRODUCT, researchBonus, researchTier } from '../../../shared/research';
+import { designEconomics, VARIANT_TIERS, variantInputQty } from '../../../shared/designer';
 
-/** Research is not on the server yet, so previews use no bonus (matches server/src/production.ts). */
-const RESEARCH_BONUS = 0;
-
-function economics(type: BuildingType, level: number, lotQ: number) {
-  const outQ = outputQuality([lotQ], RESEARCH_BONUS);
+/** Mirrors server/src/production.ts: research bonus, and a design's extra inputs, materials and price. */
+function economics(type: BuildingType, level: number, lotQ: number, bonus: number, design?: ServerDesign) {
   const out = type.outputs[0];
-  const pOut = productById(out.productId).refPrice * npcPriceMultiplier(outQ);
-  const inputs = type.inputs.map((i) => ({ qty: i.qty * level, price: productById(i.productId).refPrice * npcPriceMultiplier(lotQ) }));
+  const outQ = out.productId === RESEARCH_PRODUCT ? 0 : outputQuality([lotQ], bonus);
+  const pOut = (design ? design.priceCents / 100 : productById(out.productId).refPrice) * npcPriceMultiplier(outQ);
+  const inputs = type.inputs.map((i) => ({
+    qty: design ? variantInputQty(i.qty, level, design.tier) : i.qty * level,
+    price: productById(i.productId).refPrice * npcPriceMultiplier(lotQ),
+  }));
+  const materials = design ? designEconomics(design).materials * VARIANT_TIERS[design.tier].inputMult * out.qty * level : 0;
   const net = netPerDay({
     output: { qty: out.qty * level, price: pOut },
     inputs,
-    opCost: type.opCost * level,
+    opCost: type.opCost * level + materials,
     upkeepPerDay: type.upkeepPerDay * level,
     cyclesPerDay: 24 / type.cycleHours,
   });
-  return { outQ, pOut, net, revenue: out.qty * level * pOut * 0.98 };
+  return { outQ, pOut, net, materials, revenue: out.qty * level * pOut * 0.98 };
 }
 
 export function BuildingDetail() {
   const { id } = useParams();
-  const { buildings, inventory, cash, collect, startJob, upgrade, npcBuy } = useGame();
+  const { buildings, inventory, cash, collect, startJob, upgrade, npcBuy, me, company, act, notify } = useGame();
   const b = buildings.find((x) => x.id === id);
   const [pickedQ, setPickedQ] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -47,17 +53,32 @@ export function BuildingDetail() {
   const hasRecipe = type.outputs.length > 0;
   const nextCost = upgradeCost(type.buildCost, b.level + 1);
   const primary = type.inputs[0] ? productById(type.inputs[0].productId) : null;
-  const need = (productId: string) => (type.inputs.find((i) => i.productId === productId)?.qty ?? 0) * b.level;
+  const designId = me?.buildings.find((x) => x.id === b.id)?.designId ?? null;
+  const myDesigns = (me?.designs ?? []).filter((d) => d.companyId === company?.id && d.buildingTypeId === type.id);
+  const design = myDesigns.find((d) => d.id === designId);
+  const family = BUILDING_FAMILY[type.id];
+  const familyName = FAMILIES.find((f) => f.id === family)?.name;
+  const tier = family && me ? researchTier(me.research[family] ?? 0) : 0;
+  const lineQty = (qty: number, level: number) => (design ? variantInputQty(qty, level, design.tier) : qty * level);
+  const need = (productId: string) => lineQty(type.inputs.find((i) => i.productId === productId)?.qty ?? 0, b.level);
   const have = (productId: string) => inventory.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0);
   const lots = primary ? inventory.filter((l) => l.productId === primary.id && l.qty >= need(primary.id)) : [];
   const lotQ = pickedQ ?? lots[lots.length - 1]?.quality ?? 0;
-  const missing = type.inputs.filter((i) => have(i.productId) < i.qty * b.level);
+  const missing = type.inputs.filter((i) => have(i.productId) < need(i.productId));
   const canStart = hasRecipe && b.status === 'idle' && missing.length === 0 && (!primary || lots.length > 0);
 
-  const now = hasRecipe ? economics(type, b.level, lotQ) : null;
-  const upgraded = hasRecipe ? economics(type, b.level + 1, lotQ) : null;
+  const bonus = family ? researchBonus(tier, lotQ) : 0;
+  const now = hasRecipe ? economics(type, b.level, lotQ, bonus, design) : null;
+  const upgraded = hasRecipe ? economics(type, b.level + 1, lotQ, bonus, design) : null;
   const upgradePayback = now && upgraded && upgraded.net > now.net ? nextCost / (upgraded.net - now.net) : null;
-  const outName = type.outputs[0] ? productById(type.outputs[0].productId).name.toLowerCase() : '';
+  const outName = design ? design.name : type.outputs[0] ? productById(type.outputs[0].productId).name.toLowerCase() : '';
+
+  const chooseRecipe = async (next: string | null) => {
+    setBusy(true);
+    const res = await act(() => api(`/buildings/${b.id}/design`, { body: { designId: next } }));
+    setBusy(false);
+    if (res) notify('Recipe changed', next ? `${b.name} will make ${myDesigns.find((d) => d.id === next)?.name} from the next cycle.` : `${b.name} is back on its normal recipe.`);
+  };
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -69,13 +90,13 @@ export function BuildingDetail() {
     for (const i of missing) {
       const p = productById(i.productId);
       if (!p.npcVendor) continue;
-      const ok = await npcBuy(i.productId, i.qty * b.level - have(i.productId));
+      const ok = await npcBuy(i.productId, need(i.productId) - have(i.productId));
       if (!ok) return;
     }
   };
   const vendorCost = missing.reduce((s, i) => {
     const p = productById(i.productId);
-    return p.npcVendor ? s + (i.qty * b.level - have(i.productId)) * p.refPrice : s;
+    return p.npcVendor ? s + (need(i.productId) - have(i.productId)) * p.refPrice : s;
   }, 0);
   const nonVendorMissing = missing.filter((i) => !productById(i.productId).npcVendor);
 
@@ -93,6 +114,7 @@ export function BuildingDetail() {
             <Spec label="Category" value={<TierChip tier={type.tag} />} />
             <Spec label="Cycle" value={`${type.cycleHours}h · ${24 / type.cycleHours}/day`} />
             <Spec label="Output / cycle" value={type.outputs[0] ? `${num(type.outputs[0].qty * b.level)} ${outName}` : '—'} />
+            {family && <Spec label="Research" value={`${familyName} · Q${tier}`} />}
             <Spec label="Workers" value={num(b.level * 10)} />
             <Spec label="Op cost / cycle" value={`${num(type.opCost * b.level)} CR`} />
             <Spec label="Est. net / day" value={b.netPerDay ? `+${num(b.netPerDay)}` : '—'} />
@@ -124,6 +146,24 @@ export function BuildingDetail() {
             {b.status === 'idle' && hasRecipe && <p className="muted">Idle. Choose a lot below and start a job.</p>}
           </Card>
 
+          {myDesigns.length > 0 && type.outputs[0] && (
+            <Card title="Recipe" action={<Link to="/app/designer" className="small">Product designer</Link>}>
+              <div className="grid-auto-sm" role="radiogroup" aria-label="Recipe">
+                <button type="button" role="radio" aria-checked={!design} className="option" disabled={busy} onClick={() => void chooseRecipe(null)}>
+                  <strong>{productById(type.outputs[0].productId).name}</strong>
+                  <span className="small muted">Normal recipe</span>
+                </button>
+                {myDesigns.map((d) => (
+                  <button key={d.id} type="button" role="radio" aria-checked={d.id === designId} className="option" disabled={busy} onClick={() => void chooseRecipe(d.id)}>
+                    <strong>{d.name}</strong>
+                    <span className="small muted">{VARIANT_TIERS[d.tier].label} · ×{VARIANT_TIERS[d.tier].inputMult} inputs · {dec(d.priceCents / 100)} CR</span>
+                  </button>
+                ))}
+              </div>
+              <span className="small muted">A new recipe applies from the next cycle.</span>
+            </Card>
+          )}
+
           {hasRecipe && now && (
             <Card title={b.status === 'idle' ? 'Start a job' : 'Next job preview'}>
               {primary && (
@@ -145,7 +185,7 @@ export function BuildingDetail() {
               )}
               {missing.length > 0 && (
                 <div className="inset stack-sm">
-                  <span>Missing inputs: {missing.map((i) => `${num(i.qty * b.level - have(i.productId))} ${productById(i.productId).name.toLowerCase()}`).join(', ')}</span>
+                  <span>Missing inputs: {missing.map((i) => `${num(need(i.productId) - have(i.productId))} ${productById(i.productId).name.toLowerCase()}`).join(', ')}</span>
                   <div className="row">
                     {vendorCost > 0 && (
                       <button type="button" className="btn btn-secondary" disabled={busy || vendorCost > cash} onClick={() => void run(buyMissing)}>
@@ -160,12 +200,18 @@ export function BuildingDetail() {
                 <div className="inset stack-sm">
                   <span className="small muted">Output quality</span>
                   <span className="stat-value sm"><QualityStars q={now.outQ} /></span>
-                  <span className="small muted">min(input Q + research, lowest input + 1)</span>
+                  <span className="small muted">
+                    {!family
+                      ? 'min(input Q + research, lowest input + 1)'
+                      : bonus
+                        ? `+1 from ${familyName} research (Q${tier})`
+                        : tier > 0 ? `${familyName} research Q${tier} is not above the inputs` : `No ${familyName} research yet`}
+                  </span>
                 </div>
                 <div className="inset stack-sm">
                   <span className="small muted">Value / cycle at ref (after 2% fee)</span>
                   <span className="stat-value sm">{num(now.revenue)} CR</span>
-                  <span className="small muted">{num(type.outputs[0].qty * b.level)} × {dec(now.pOut)} × 0.98</span>
+                  <span className="small muted">{num(type.outputs[0].qty * b.level)} × {dec(now.pOut)} × 0.98{now.materials ? ` · materials ${num(now.materials)} CR` : ''}</span>
                 </div>
                 <div className="inset stack-sm">
                   <span className="small muted">Projected net / day</span>

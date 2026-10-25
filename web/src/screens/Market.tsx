@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api, ApiError, toCr } from '../api/client';
 import type { MarketDetail, MarketRow, OpenOrder } from '../api/types';
 import { TopBar } from '../components/AppShell';
@@ -35,7 +36,8 @@ export function Market() {
   const [rows, setRows] = useState<MarketRow[]>([]);
   const [detail, setDetail] = useState<MarketDetail | null>(null);
   const [orders, setOrders] = useState<OpenOrder[]>([]);
-  const [selId, setSelId] = useState('flour');
+  const [params] = useSearchParams();
+  const [selId, setSelId] = useState(params.get('product') ?? 'flour');
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [qty, setQty] = useState(100);
   const [priceText, setPriceText] = useState('');

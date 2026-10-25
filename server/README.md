@@ -27,6 +27,21 @@ Environment: `DATABASE_URL`, `PORT` (4100), `TIME_SCALE` (60 — a 4h cycle take
   cost (with admin overhead) and sets `finishes_at`. Jobs settle lazily: `collect` atomically flips finished jobs
   from `running` to `collected` and credits goods, so it can never double-pay, then restarts jobs that have inputs.
   Output quality follows `min(mean input Q + research, lowest input + 1)`.
+- **Research** (`src/research.ts`, rules in `shared/research.ts`): eight families with tiers at 50 / 250 / 1.5k / 6k /
+  20k points. R&D Labs (Lv 3) turn 2 MWh into 25 research points per level per cycle; points go straight to the
+  company's lab focus, or to the warehouse as a tradeable product (`research_points`) when no focus is set. Points
+  in the warehouse can be applied to any family. A building whose family's tier is above its inputs' average
+  quality gets a +1 research bonus, so research raises the quality cap one step at a time. The first company on
+  the server to reach each family tier gets +500 XP.
+- **Product designer & brands** (`src/brands.ts`, rules in `shared/designer.ts`): brands cost 5,000 CR, have
+  unique names (case- and space-insensitive, with a character and profanity check), one of four logos, and at
+  most three per company. A design picks a template (bread at the Bakery, car at the Car Factory, watch at the
+  Watchmaker), material options and a tier (basic / premium ×1.4 inputs / luxury ×2.2 inputs, luxury needs
+  reputation 40). It must pass the value check: price ≤ min(inputs × 1.8 + op cost, base reference × tier price
+  band). Each design is its own product row, so the warehouse, exchange, contracts and NPC sales all work on it.
+  A building set to a design consumes the extra inputs, pays the materials in cash and outputs the design.
+  Brand reputation (0–100, starts at 10) decays 1% a day at the daily close and grows with the day's units sold,
+  distinct buyers, their quality and on-time contract deliveries; NPC buyers pay up to +20% for it.
 - **Exchange** (`src/exchange.ts`): limit orders with price-time priority, executing at the resting order's
   price. Buyers lock `price × qty` in an escrow account; sellers move goods into the order. Each fill settles in
   one ledger transaction (buyer escrow → seller cash − 2% fee → fee sink, plus any price-improvement refund).
@@ -101,6 +116,9 @@ With `Authorization: Bearer <token>`: `GET /api/me`, `GET /api/activity`, `POST 
 `GET /api/suppliers?productId=`, `GET /api/rfqs`, `POST /api/rfqs`, `POST /api/rfqs/:id/bids` `{priceCents}`,
 `POST /api/rfqs/:id/award` `{bidId}`, `POST /api/rfqs/:id/cancel`.
 `GET /api/leagues`, `GET /api/contests/:id`.
+`GET /api/research`, `POST /api/research/focus` `{family | null}`, `POST /api/research/apply` `{family, points}`.
+`GET /api/designer`, `GET /api/brands/check?name=`, `POST /api/brands` `{name, logo}`,
+`POST /api/designs` `{brandId, templateId, slots, tier, priceCents}`, `POST /api/buildings/:id/design` `{designId | null}`.
 
 Dev only (`DEMO_LOGIN` on): `POST /api/dev/close-day` runs the company's next daily close now;
 `POST /api/dev/advance-contracts` `{hours}` shifts the company's contract windows and RFQ deadlines into the past
@@ -109,6 +127,6 @@ by that many game hours and processes them.
 
 ## Not built yet
 
-Wages, mortgages, lines of credit and savings, player bonds, a player auction in receivership, freight and transit time for contract deliveries, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, research, product designer and brands,
-personal wealth, real authentication (sessions are bearer tokens with no password), rate limiting, and
+Wages, mortgages, lines of credit and savings, player bonds, a player auction in receivership, freight and transit time for contract deliveries, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
+dress and sneaker templates (no garment factory yet), personal wealth, real authentication (sessions are bearer tokens with no password), rate limiting, and
 linked-account detection. The web screens for these still run on demo data.

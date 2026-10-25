@@ -4,7 +4,7 @@
  */
 
 export type TierCode = 'T0' | 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6' | 'T7';
-export type SectorTag = TierCode | 'Energy' | 'Retail';
+export type SectorTag = TierCode | 'Energy' | 'Retail' | 'Research';
 
 export interface ProductDef {
   id: string;
@@ -64,6 +64,7 @@ export const PRODUCT_DEFS: ProductDef[] = [
   { id: 'suv', name: 'SUV', tier: 'T4', refPrice: 2600 },
   { id: 'sports_car', name: 'Sports car', tier: 'T4', refPrice: 9000 },
   { id: 'luxury_watch', name: 'Luxury watch', tier: 'T7', refPrice: 900 },
+  { id: 'research_points', name: 'Research points', tier: 'T5', refPrice: 12, unit: 'RP' },
 ];
 
 const r = (productId: string, qty: number): RecipeLine => ({ productId, qty });
@@ -78,6 +79,9 @@ export const BUILDING_TYPE_DEFS: BuildingTypeDef[] = [
     inputs: [r('flour', 80)], outputs: [r('bread', 40)], opCost: 120, upkeepPerDay: 100, netLabel: '+1,690' },
   { id: 'supermarket', name: 'Supermarket', tag: 'Retail', buildCost: 50_000, unlockLevel: 3, cycleHours: 4,
     inputs: [], outputs: [], opCost: 150, upkeepPerDay: 120, summary: 'Sells food to NPC shoppers at up to 1.35× ref · 60 units/cycle', netLabel: '+1.0–1.8k' },
+  { id: 'rnd_lab', name: 'R&D Lab', tag: 'Research', buildCost: 80_000, unlockLevel: 3, cycleHours: 4,
+    inputs: [r('mwh', 2)], outputs: [r('research_points', 25)], opCost: 90, upkeepPerDay: 150,
+    summary: '2 MWh → 25 research points · 4 h · points go to the lab focus or the warehouse', netLabel: 'research' },
   { id: 'iron_mine', name: 'Iron Mine', tag: 'T0', buildCost: 60_000, unlockLevel: 5, cycleHours: 4,
     inputs: [r('mwh', 1)], outputs: [r('iron_ore', 100)], opCost: 380, upkeepPerDay: 150, netLabel: '+858' },
   { id: 'power_plant', name: 'Thermal Power', tag: 'Energy', buildCost: 120_000, unlockLevel: 5, cycleHours: 4,

@@ -8,9 +8,9 @@ import { companyAccount, systemAccount, transfer } from './ledger';
 import { loadBuildingType } from './catalog';
 import { awardXp } from './xp';
 import { XP_PER_CR_VALUE_ADD } from '../../shared/levels';
-
-/** Research is not modelled yet, so no quality bonus is applied. */
-const RESEARCH_BONUS = 0;
+import { BUILDING_FAMILY, RESEARCH_PRODUCT, researchBonus } from '../../shared/research';
+import { VARIANT_TIERS, variantInputQty, type VariantTier } from '../../shared/designer';
+import { addResearch, familyTier } from './research';
 
 export interface BuildingView {
   id: string;
@@ -18,6 +18,8 @@ export interface BuildingView {
   name: string;
   level: number;
   plot: number;
+  /** Design (branded product) the building makes instead of its normal output. */
+  designId: string | null;
   job: null | {
     id: string;
     startedAt: string;
@@ -56,8 +58,8 @@ export async function buyBuilding(tx: Tx, companyId: string, typeId: string, plo
 }
 
 async function lockBuilding(tx: Tx, companyId: string, buildingId: string) {
-  const res = await tx.query<{ id: string; building_type_id: string; level: number; name: string }>(
-    'SELECT id, building_type_id, level, name FROM buildings WHERE id = $1 AND company_id = $2 FOR UPDATE',
+  const res = await tx.query<{ id: string; building_type_id: string; level: number; name: string; design_id: string | null }>(
+    'SELECT id, building_type_id, level, name, design_id FROM buildings WHERE id = $1 AND company_id = $2 FOR UPDATE',
     [buildingId, companyId],
   );
   if (!res.rows[0]) throw notFound('Building');
@@ -83,31 +85,49 @@ export async function startJob(tx: Tx, companyId: string, buildingId: string, op
     throw conflict('busy', done ? 'Collect the finished job first.' : `${b.name} is already running a job.`);
   }
 
+  // A building set to a design runs the same recipe with more inputs, pays for materials and makes the design.
+  const design = b.design_id
+    ? (await tx.query<{ product_id: string; tier: VariantTier; materials_cents: number }>(
+        'SELECT product_id, tier, materials_cents FROM designs WHERE product_id = $1',
+        [b.design_id],
+      )).rows[0]
+    : undefined;
+
   const qualities: number[] = [];
   let inputValue = 0;
   for (const [i, input] of type.inputs.entries()) {
-    const need = input.qty * b.level;
+    const need = design ? variantInputQty(input.qty, b.level, design.tier) : input.qty * b.level;
     const q = i === 0 && opts.inputQuality !== undefined ? opts.inputQuality : await bestLot(tx, companyId, input.productId, need);
     if (q === null) throw conflict('missing_inputs', `Needs ${need} ${input.productId.replace('_', ' ')} in the warehouse.`);
     await takeGoods(tx, companyId, input.productId, q, need);
     qualities.push(q);
     inputValue += need * (await basePrice(tx, input.productId));
   }
-  const outQ = outputQuality(qualities, RESEARCH_BONUS);
+  const out = type.outputs[0];
+  const family = BUILDING_FAMILY[type.id];
+  const mean = qualities.length ? qualities.reduce((a, x) => a + x, 0) / qualities.length : 0;
+  const bonus = family ? researchBonus(await familyTier(tx, companyId, family), mean) : 0;
+  // Research points have no quality.
+  const outQ = out.productId === RESEARCH_PRODUCT ? 0 : outputQuality(qualities, bonus);
 
   const levels = await tx.query<{ total: number }>('SELECT COALESCE(SUM(level), 0)::int AS total FROM buildings WHERE company_id = $1', [companyId]);
   const opCost = Math.round(type.opCostCents * b.level * adminOverhead(levels.rows[0].total));
   const cash = await companyAccount(tx, companyId, 'cash');
   const sink = await systemAccount(tx, 'sink:operations');
   await transfer(tx, 'op_cost', `${b.name}: operating cost`, cash, sink, opCost);
+  if (design) {
+    const materials = Math.round(Number(design.materials_cents) * VARIANT_TIERS[design.tier].inputMult * out.qty * b.level);
+    await transfer(tx, 'op_cost', `${b.name}: design materials`, cash, await systemAccount(tx, 'sink:materials'), materials);
+    inputValue += materials;
+  }
 
-  const out = type.outputs[0];
+  const outProduct = design?.product_id ?? out.productId;
   const now = new Date();
   const finishes = new Date(now.getTime() + gameMinutesToMs(type.cycleMinutes));
   const job = await tx.query<{ id: string }>(
     `INSERT INTO production_jobs (building_id, started_at, finishes_at, state, output_product, output_qty, output_quality, input_quality, input_value_cents)
      VALUES ($1, $2, $3, 'running', $4, $5, $6, $7, $8) RETURNING id`,
-    [b.id, now, finishes, out.productId, out.qty * b.level, outQ, qualities[0] ?? 0, inputValue],
+    [b.id, now, finishes, outProduct, out.qty * b.level, outQ, qualities[0] ?? 0, inputValue],
   );
   return { jobId: job.rows[0].id, finishesAt: finishes.toISOString(), outputQuality: outQ, opCostCents: opCost };
 }
@@ -117,6 +137,8 @@ export interface Collected {
   productId: string;
   qty: number;
   quality: number;
+  /** Set when research points went straight to the lab's focus family instead of the warehouse. */
+  researchFamily?: string;
   restarted: boolean;
   restartError?: string;
   xp: number;
@@ -140,13 +162,17 @@ export async function collect(tx: Tx, companyId: string, opts: { buildingIds?: s
     [companyId, opts.buildingIds ?? null],
   );
   const out: Collected[] = [];
+  const focus = (await tx.query<{ research_focus: string | null }>('SELECT research_focus FROM companies WHERE id = $1', [companyId])).rows[0].research_focus;
   for (const row of res.rows) {
-    await addGoods(tx, companyId, row.output_product, row.output_quality, row.output_qty);
+    const toFocus = row.output_product === RESEARCH_PRODUCT && focus !== null;
+    if (toFocus) await addResearch(tx, companyId, focus as Parameters<typeof addResearch>[2], row.output_qty, 'lab');
+    else await addGoods(tx, companyId, row.output_product, row.output_quality, row.output_qty);
     // XP for value added: output minus inputs, both at base reference prices.
     const valueAdd = row.output_qty * (await basePrice(tx, row.output_product)) - Number(row.input_value_cents);
     await tx.query('UPDATE production_jobs SET value_add_cents = $2 WHERE id = $1', [row.id, valueAdd]);
     const xp = await awardXp(tx, companyId, 'production', (valueAdd / 100) * XP_PER_CR_VALUE_ADD, { note: `${row.output_qty} ${row.output_product.replace('_', ' ')} produced` });
     const item: Collected = { buildingId: row.building_id, productId: row.output_product, qty: row.output_qty, quality: row.output_quality, restarted: false, xp: xp.awarded };
+    if (toFocus) item.researchFamily = focus!;
     if (opts.restart) {
       await tx.query('SAVEPOINT restart');
       try {
@@ -177,7 +203,7 @@ export async function upgradeBuilding(tx: Tx, companyId: string, buildingId: str
 
 export async function listBuildings(db: Db | Tx, companyId: string): Promise<BuildingView[]> {
   const res = await db.query(
-    `SELECT b.id, b.building_type_id, b.name, b.level, b.plot,
+    `SELECT b.id, b.building_type_id, b.name, b.level, b.plot, b.design_id,
             j.id AS job_id, j.started_at, j.finishes_at, j.output_product, j.output_qty, j.output_quality
      FROM buildings b
      LEFT JOIN production_jobs j ON j.building_id = b.id AND j.state = 'running'
@@ -190,6 +216,7 @@ export async function listBuildings(db: Db | Tx, companyId: string): Promise<Bui
     name: r.name,
     level: r.level,
     plot: r.plot,
+    designId: r.design_id,
     job: r.job_id
       ? {
           id: r.job_id,
@@ -201,4 +228,19 @@ export async function listBuildings(db: Db | Tx, companyId: string): Promise<Bui
         }
       : null,
   }));
+}
+
+/** Points a building at one of the company's designs (or back to its normal recipe). Takes effect next cycle. */
+export async function setBuildingDesign(tx: Tx, companyId: string, buildingId: string, designId: string | null) {
+  const b = await lockBuilding(tx, companyId, buildingId);
+  if (designId !== null) {
+    const d = (await tx.query<{ building_type_id: string; company_id: string }>(
+      'SELECT d.building_type_id, br.company_id FROM designs d JOIN brands br ON br.id = d.brand_id WHERE d.product_id = $1',
+      [designId],
+    )).rows[0];
+    if (!d || d.company_id !== companyId) throw notFound('Design');
+    if (d.building_type_id !== b.building_type_id) throw conflict('wrong_building', 'That design is made in a different building.');
+  }
+  await tx.query('UPDATE buildings SET design_id = $2 WHERE id = $1', [b.id, designId]);
+  return { buildingId: b.id, designId };
 }

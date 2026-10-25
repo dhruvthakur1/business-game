@@ -4,7 +4,7 @@ import { gameDay } from './time';
 
 type Q = Pick<Tx, 'query'>;
 
-export type XpSource = 'production' | 'contract_sale' | 'contract_purchase' | 'trade' | 'npc_sale';
+export type XpSource = 'production' | 'contract_sale' | 'contract_purchase' | 'trade' | 'npc_sale' | 'research';
 
 export interface XpAward {
   awarded: number;
