@@ -11,12 +11,15 @@ const PRODUCT_ART: Record<string, string> = {
   engine: P('engine'), bread: P('bread'), smartphone: P('smartphone'), laptop: P('laptop'),
   economy_car: P('car-economy'), suv: P('car-suv'), sports_car: P('car-sports'), luxury_watch: P('watch-automatic'),
   research_points: P('research-points'),
+  sand: P('sand'), limestone: P('limestone'), cement: P('cement'), garments: P('streetwear-tee'),
 };
 
 const BUILDING_ART: Record<string, string> = {
   farm: B('farm'), mill: B('mill'), bakery: B('bakery'), supermarket: B('supermarket'), iron_mine: B('mine'),
   power_plant: B('power-plant'), solar: B('solar-farm'), steel_mill: B('steel-mill'), chip_fab: B('chip-fab'),
   car_factory: B('car-factory'), watchmaker: B('watchmaker'), luxury_store: B('luxury-store'), rnd_lab: B('rnd-lab'),
+  cotton_farm: B('cotton-farm'), coal_mine: B('coal-mine'), quarry: B('quarry'), sand_pit: B('sand-pit'),
+  textile_mill: B('textile-mill'), garment_factory: B('garment-factory'), cement_plant: B('cement-plant'),
 };
 
 export const PRODUCTS: Product[] = PRODUCT_DEFS.map((p) => ({ ...p, art: PRODUCT_ART[p.id] }));

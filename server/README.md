@@ -30,6 +30,11 @@ Local development sign-in for the seeded demo company: `dev@mercantile.test` / `
   cost (with admin overhead) and sets `finishes_at`. Jobs settle lazily: `collect` atomically flips finished jobs
   from `running` to `collected` and credits goods, so it can never double-pay, then restarts jobs that have inputs.
   Output quality follows `min(mean input Q + research, lowest input + 1)`.
+- **Phase 2 buildings** (catalog in `shared/catalog.ts`): Cotton Farm (Lv 4), Coal Mine and Quarry (Lv 5), Textile
+  Mill (Lv 6), Garment Factory and Sand Pit (Lv 8) and Cement Plant (Lv 10), with new products limestone, cement and
+  garments. Mines, the quarry and the sand pit use 1 MWh per cycle instead of the report's 0.5 (recipe quantities are
+  whole numbers); their op cost is 20 CR lower so net/day still matches the report. The Garment Factory adds dress and
+  sneaker templates to the product designer.
 - **Regions** (rules in `shared/regions.ts`): buildings are in the company's home region. Each level employs 10
   workers; wages are 40% of op cost at wage index 1.0 and are charged as their own ledger line (`wages` →
   `sink:wages`), scaled by the region's index. North: +10% farm yield, wages ×1.0. East: +10% iron mine and

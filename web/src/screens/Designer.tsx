@@ -29,7 +29,7 @@ export function Designer() {
   const [data, setData] = useState<DesignerResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tplId, setTplId] = useState<TemplateId>('loaf');
-  const [choices, setChoices] = useState<Record<TemplateId, Record<string, number>>>({ loaf: {}, car: {}, watch: {} });
+  const [choices, setChoices] = useState<Record<TemplateId, Record<string, number>>>({ loaf: {}, dress: {}, sneaker: {}, car: {}, watch: {} });
   const [tier, setTier] = useState<VariantTier>('premium');
   const [priceOverride, setPriceOverride] = useState<number | null>(null);
   const [brandSel, setBrandSel] = useState<string | null>(null);

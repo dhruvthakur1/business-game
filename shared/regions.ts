@@ -19,12 +19,12 @@ export interface RegionRule {
 
 export const REGION_RULES: Record<RegionId, RegionRule> = {
   north: {
-    id: 'north', name: 'North', wageIndex: 1.0, yieldBonus: { farm: 1.1 },
-    bonusLabel: '+10% farm yield', note: 'Best for a food start',
+    id: 'north', name: 'North', wageIndex: 1.0, yieldBonus: { farm: 1.1, cotton_farm: 1.1 },
+    bonusLabel: '+10% farm yield (grain and cotton)', note: 'Best for a food start',
   },
   east: {
-    id: 'east', name: 'East', wageIndex: 1.0, yieldBonus: { iron_mine: 1.1, power_plant: 1.1 },
-    bonusLabel: '+10% mine and power plant output', note: 'Coal, iron, heavy industry',
+    id: 'east', name: 'East', wageIndex: 1.0, yieldBonus: { iron_mine: 1.1, coal_mine: 1.1, quarry: 1.1, sand_pit: 1.1, power_plant: 1.1 },
+    bonusLabel: '+10% mine, quarry and power plant output', note: 'Coal, iron, heavy industry',
   },
   south: {
     id: 'south', name: 'South', wageIndex: 0.8, yieldBonus: {},

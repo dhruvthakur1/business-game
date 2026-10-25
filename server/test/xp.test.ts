@@ -32,7 +32,7 @@ describe('level curve', () => {
     expect(levelProgress(1500, 2)).toEqual({ intoLevel: 500, levelSize: 1250, nextLevelAt: 2250 });
     expect(nextUnlock(1)).toEqual({ level: 2, names: ['Starter loan'] });
     expect(nextUnlock(2)?.level).toBe(3);
-    expect(nextUnlock(4)).toEqual({ level: 5, names: ['Iron Mine', 'Thermal Power', 'Supply contracts & RFQs', 'Term loans'] });
+    expect(nextUnlock(4)).toEqual({ level: 5, names: ['Coal Mine', 'Quarry', 'Iron Mine', 'Thermal Power', 'Supply contracts & RFQs', 'Term loans'] });
   });
 });
 

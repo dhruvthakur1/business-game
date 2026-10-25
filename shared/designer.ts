@@ -17,7 +17,7 @@ export interface TemplateSlot {
   options: SlotOption[];
 }
 
-export type TemplateId = 'loaf' | 'car' | 'watch';
+export type TemplateId = 'loaf' | 'dress' | 'sneaker' | 'car' | 'watch';
 
 export interface ProductTemplate {
   id: TemplateId;
@@ -35,6 +35,22 @@ export const TEMPLATES: ProductTemplate[] = [
     slots: [
       { key: 'grain', label: 'Grain', options: [{ name: 'Standard', surcharge: 0 }, { name: 'Stone-ground', surcharge: 4 }, { name: 'Heritage rye', surcharge: 9 }] },
       { key: 'finish', label: 'Finish', options: [{ name: 'Plain', surcharge: 0 }, { name: 'Seeded', surcharge: 2 }, { name: 'Glazed', surcharge: 3 }] },
+    ],
+  },
+  {
+    id: 'dress', label: 'Dress', buildingTypeId: 'garment_factory', baseProductId: 'garments',
+    slots: [
+      { key: 'fabric', label: 'Fabric', options: [{ name: 'Synthetic', surcharge: 0 }, { name: 'Cotton', surcharge: 10 }, { name: 'Silk', surcharge: 100 }] },
+      { key: 'trim', label: 'Trim', options: [{ name: 'Buttons', surcharge: 0 }, { name: 'Lace', surcharge: 23 }, { name: 'Embroidery', surcharge: 58 }] },
+      { key: 'lining', label: 'Lining', options: [{ name: 'None', surcharge: 0 }, { name: 'Satin', surcharge: 18 }] },
+    ],
+  },
+  {
+    id: 'sneaker', label: 'Sneaker', buildingTypeId: 'garment_factory', baseProductId: 'garments',
+    slots: [
+      { key: 'upper', label: 'Upper', options: [{ name: 'Canvas', surcharge: 0 }, { name: 'Leather', surcharge: 35 }] },
+      { key: 'sole', label: 'Sole', options: [{ name: 'Rubber', surcharge: 0 }, { name: 'Foam', surcharge: 7 }] },
+      { key: 'laces', label: 'Laces', options: [{ name: 'Cotton', surcharge: 0 }, { name: 'Waxed', surcharge: 3 }] },
     ],
   },
   {
@@ -159,6 +175,8 @@ const P = (file: string) => `/art/products/${file}.svg`;
 /** Drawing for a design: depends on template, tier and a few slot picks. */
 export function designArt(c: DesignChoice): string {
   if (c.templateId === 'loaf') return P('bread');
+  if (c.templateId === 'dress') return P('gala-gown');
+  if (c.templateId === 'sneaker') return P('sneakers');
   if (c.templateId === 'car') return c.tier === 'luxury' ? P('car-sports') : c.tier === 'premium' ? P('car-sedan') : P('car-economy');
   const gold = (c.slots.case ?? 0) === 2;
   if (c.tier === 'luxury') return gold ? P('watch-founders') : P('watch-tourbillon');

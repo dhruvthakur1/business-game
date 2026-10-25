@@ -347,7 +347,7 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
     const body = z
       .object({
         brandId: uuid,
-        templateId: z.enum(['loaf', 'car', 'watch']),
+        templateId: z.enum(['loaf', 'dress', 'sneaker', 'car', 'watch']),
         slots: z.record(z.string().max(20), z.number().int()),
         tier: z.enum(['basic', 'premium', 'luxury']),
         priceCents: z.number().int().positive(),

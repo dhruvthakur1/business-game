@@ -25,10 +25,16 @@ export const FAMILIES: FamilyDef[] = [
 /** Which family's research improves each building's output. Retail and labs have none. */
 export const BUILDING_FAMILY: Record<string, FamilyId | undefined> = {
   farm: 'agri',
+  cotton_farm: 'agri',
   mill: 'food',
   bakery: 'food',
   iron_mine: 'metals',
   steel_mill: 'metals',
+  quarry: 'metals',
+  sand_pit: 'metals',
+  cement_plant: 'metals',
+  coal_mine: 'energy',
+  textile_mill: 'textiles',
   power_plant: 'energy',
   solar: 'energy',
   chip_fab: 'electronics',
