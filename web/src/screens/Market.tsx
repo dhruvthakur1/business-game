@@ -10,6 +10,7 @@ import { SELLER_FEE } from '../lib/economy';
 import { dec, num, trend } from '../lib/format';
 import { useGame } from '../state/game';
 import { PRICE_BAND } from '../../../shared/catalog';
+import { FREIGHT } from '../../../shared/regions';
 
 const REFRESH_MS = 5000;
 
@@ -91,6 +92,9 @@ export function Market() {
   const priceOk = Number.isFinite(price) && price >= minP && price <= maxP;
   const subtotal = qty * (priceOk ? price : 0);
   const fee = side === 'sell' ? subtotal * SELLER_FEE : 0;
+  // Sellers pay freight to the buyer's region: at most 2 hops (opposite side of the map).
+  const weight = productById(selId).weight ?? 1;
+  const maxFreight = side === 'sell' ? qty * weight * 2 * FREIGHT.ratePerHop : 0;
   const lotQty = myLots.find((l) => l.quality === quality)?.qty ?? 0;
   const problem = !priceOk
     ? `Price must be ${dec(minP)}–${dec(maxP)}`
@@ -231,12 +235,16 @@ export function Market() {
             <div className="stack-sm mono" style={{ borderTop: '1px solid var(--line)', paddingTop: 14, gap: 8 }}>
               <div className="row-between"><span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>{side === 'buy' ? 'Locked in escrow (max)' : 'Gross at limit'}</span><span>{dec(subtotal)}</span></div>
               {side === 'sell' && <div className="row-between"><span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Seller fee 2%</span><span>−{dec(fee)}</span></div>}
-              <div className="row-between" style={{ fontSize: 16, fontWeight: 600 }}><span style={{ fontFamily: 'var(--font-ui)' }}>{side === 'buy' ? 'You pay at most' : 'You receive at least'}</span><span className="goldtx">{dec(subtotal - fee)} CR</span></div>
+              {side === 'sell' && maxFreight > 0 && <div className="row-between"><span className="muted" style={{ fontFamily: 'var(--font-ui)' }}>Freight to buyer (up to)</span><span>−{dec(maxFreight)}</span></div>}
+              <div className="row-between" style={{ fontSize: 16, fontWeight: 600 }}><span style={{ fontFamily: 'var(--font-ui)' }}>{side === 'buy' ? 'You pay at most' : 'You receive at least'}</span><span className="goldtx">{dec(subtotal - fee - maxFreight)} CR</span></div>
             </div>
             <button type="button" className={`btn btn-lg ${side === 'buy' ? 'btn-buy' : 'btn-sell'}`} disabled={!!problem || busy} onClick={() => void submit()}>
               {problem ?? (side === 'buy' ? 'Place buy order' : 'Place sell order')}
             </button>
-            <span className="small muted">Fills happen at the resting order’s price; any better price is refunded from escrow.</span>
+            <span className="small muted">
+              Fills happen at the resting order’s price; any better price is refunded from escrow.
+              {weight > 0 ? ' Goods ship to the buyer: 1 h inside a region, 4 h per region hop. Sellers pay freight (½ price via the South).' : ' Delivered instantly over the grid, no freight.'}
+            </span>
           </Card>
 
           <NpcPanel

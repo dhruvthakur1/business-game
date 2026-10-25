@@ -234,7 +234,7 @@ function ActiveTab({ contracts, run, devTools, onFastForward }: { contracts: Con
               })}
             </ol>
             {sel.role === 'seller' && next.status === 'funded' && (
-              <span className="small muted">Delivery happens automatically as soon as you have {num(sel.qty)} {productName(sel.productId).toLowerCase()} at Q{sel.minQuality} or better in the warehouse.</span>
+              <span className="small muted">Delivery happens automatically as soon as you have {num(sel.qty)} {productName(sel.productId).toLowerCase()} at Q{sel.minQuality} or better in the warehouse. The goods then travel to the buyer (1 h inside a region, 4 h per region hop); the seller pays freight. On time is judged at dispatch.</span>
             )}
           </div>
         )}

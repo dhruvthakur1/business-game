@@ -7,6 +7,7 @@ import { processContracts } from './contractWork';
 import { runLeagueCycle } from './leagues';
 import { migrate } from './migrate';
 import { pruneSessions } from './auth';
+import { deliverShipments } from './shipping';
 
 const db = createPool();
 await migrate(db);
@@ -27,8 +28,11 @@ const close = () =>
 await close();
 const closeTimer = setInterval(close, Math.min(60_000, dayMs / 4));
 
-// Contract deliveries, offer/RFQ expiry and NPC counterparties.
-const contracts = () => processContracts(db).catch((err) => app.log.error(err, 'contract processing failed'));
+// Contract deliveries, offer/RFQ expiry and NPC counterparties; then land arrived shipments.
+const contracts = () =>
+  processContracts(db)
+    .then(() => deliverShipments(db))
+    .catch((err) => app.log.error(err, 'contract processing or shipment delivery failed'));
 await contracts();
 const contractTimer = setInterval(contracts, 5_000);
 

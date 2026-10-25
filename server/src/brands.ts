@@ -89,7 +89,10 @@ export async function createDesign(tx: Tx, companyId: string, input: DesignInput
   const finalName = dupe.rowCount ? `${name} ${count + 1}` : name;
   const base = (await tx.query<{ tier: string }>('SELECT tier FROM products WHERE id = $1', [template.baseProductId])).rows[0];
   const productId = `d_${randomBytes(4).toString('hex')}`;
-  await tx.query('INSERT INTO products (id, name, tier, ref_price_cents, npc_vendor) VALUES ($1, $2, $3, $4, false)', [productId, finalName, base.tier, input.priceCents]);
+  await tx.query(
+    'INSERT INTO products (id, name, tier, ref_price_cents, npc_vendor, unit_weight) SELECT $1, $2, $3, $4, false, unit_weight FROM products WHERE id = $5',
+    [productId, finalName, base.tier, input.priceCents, template.baseProductId],
+  );
   await tx.query(
     `INSERT INTO designs (product_id, brand_id, template_id, building_type_id, base_product_id, tier, slots, materials_cents, art)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,

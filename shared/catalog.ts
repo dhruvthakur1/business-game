@@ -14,6 +14,8 @@ export interface ProductDef {
   unit?: string;
   /** Sold by the NPC vendor at reference price (raw inputs). */
   npcVendor?: boolean;
+  /** Freight weight per unit (default 1). 0 = delivered over the grid or online: no freight, no transit. */
+  weight?: number;
 }
 
 export interface RecipeLine {
@@ -40,31 +42,31 @@ export const PRODUCT_DEFS: ProductDef[] = [
   { id: 'seeds', name: 'Seeds', tier: 'T0', refPrice: 1.2, npcVendor: true },
   { id: 'fertilizer', name: 'Fertilizer', tier: 'T0', refPrice: 4, npcVendor: true },
   { id: 'water', name: 'Water', tier: 'T0', refPrice: 0.3, npcVendor: true },
-  { id: 'iron_ore', name: 'Iron ore', tier: 'T0', refPrice: 6 },
-  { id: 'coal', name: 'Coal', tier: 'T0', refPrice: 3, npcVendor: true },
-  { id: 'sand', name: 'Sand', tier: 'T0', refPrice: 1.5, npcVendor: true },
+  { id: 'iron_ore', name: 'Iron ore', tier: 'T0', refPrice: 6, weight: 2 },
+  { id: 'coal', name: 'Coal', tier: 'T0', refPrice: 3, npcVendor: true, weight: 2 },
+  { id: 'sand', name: 'Sand', tier: 'T0', refPrice: 1.5, npcVendor: true, weight: 2 },
   { id: 'wheat', name: 'Wheat', tier: 'T1', refPrice: 4.5 },
   { id: 'cotton', name: 'Cotton', tier: 'T1', refPrice: 5.5 },
   { id: 'flour', name: 'Flour', tier: 'T2', refPrice: 8 },
   { id: 'fabric', name: 'Fabric', tier: 'T2', refPrice: 15 },
-  { id: 'steel', name: 'Steel', tier: 'T2', refPrice: 24 },
-  { id: 'mwh', name: 'Electricity', tier: 'T2', refPrice: 40, unit: 'MWh' },
+  { id: 'steel', name: 'Steel', tier: 'T2', refPrice: 24, weight: 2 },
+  { id: 'mwh', name: 'Electricity', tier: 'T2', refPrice: 40, unit: 'MWh', weight: 0 },
   { id: 'silicon_wafer', name: 'Silicon wafer', tier: 'T2', refPrice: 25 },
   { id: 'gold_bar', name: 'Gold bar', tier: 'T2', refPrice: 950 },
   { id: 'glass', name: 'Glass', tier: 'T2', refPrice: 12 },
   { id: 'chip', name: 'Chip', tier: 'T3', refPrice: 52 },
-  { id: 'engine', name: 'Engine', tier: 'T3', refPrice: 520 },
-  { id: 'auto_parts', name: 'Auto parts kit', tier: 'T3', refPrice: 190 },
+  { id: 'engine', name: 'Engine', tier: 'T3', refPrice: 520, weight: 5 },
+  { id: 'auto_parts', name: 'Auto parts kit', tier: 'T3', refPrice: 190, weight: 3 },
   { id: 'movement_parts', name: 'Watch movement parts', tier: 'T3', refPrice: 30 },
   { id: 'sapphire', name: 'Sapphire crystal', tier: 'T3', refPrice: 20 },
   { id: 'bread', name: 'Bread', tier: 'T4', refPrice: 27 },
   { id: 'smartphone', name: 'Smartphone', tier: 'T4', refPrice: 230 },
   { id: 'laptop', name: 'Laptop', tier: 'T4', refPrice: 650 },
-  { id: 'economy_car', name: 'Economy car', tier: 'T4', refPrice: 1450 },
-  { id: 'suv', name: 'SUV', tier: 'T4', refPrice: 2600 },
-  { id: 'sports_car', name: 'Sports car', tier: 'T4', refPrice: 9000 },
+  { id: 'economy_car', name: 'Economy car', tier: 'T4', refPrice: 1450, weight: 20 },
+  { id: 'suv', name: 'SUV', tier: 'T4', refPrice: 2600, weight: 25 },
+  { id: 'sports_car', name: 'Sports car', tier: 'T4', refPrice: 9000, weight: 18 },
   { id: 'luxury_watch', name: 'Luxury watch', tier: 'T7', refPrice: 900 },
-  { id: 'research_points', name: 'Research points', tier: 'T5', refPrice: 12, unit: 'RP' },
+  { id: 'research_points', name: 'Research points', tier: 'T5', refPrice: 12, unit: 'RP', weight: 0 },
 ];
 
 const r = (productId: string, qty: number): RecipeLine => ({ productId, qty });

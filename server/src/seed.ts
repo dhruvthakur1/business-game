@@ -18,9 +18,9 @@ export async function upsertCatalog(db: Db) {
   await withTx(db, async (tx) => {
     for (const p of PRODUCT_DEFS) {
       await tx.query(
-        `INSERT INTO products (id, name, tier, ref_price_cents, unit, npc_vendor) VALUES ($1, $2, $3, $4, $5, $6)
-         ON CONFLICT (id) DO UPDATE SET name = $2, tier = $3, ref_price_cents = $4, unit = $5, npc_vendor = $6`,
-        [p.id, p.name, p.tier, toCents(p.refPrice), p.unit ?? null, p.npcVendor ?? false],
+        `INSERT INTO products (id, name, tier, ref_price_cents, unit, npc_vendor, unit_weight) VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (id) DO UPDATE SET name = $2, tier = $3, ref_price_cents = $4, unit = $5, npc_vendor = $6, unit_weight = $7`,
+        [p.id, p.name, p.tier, toCents(p.refPrice), p.unit ?? null, p.npcVendor ?? false, p.weight ?? 1],
       );
     }
     for (const t of BUILDING_TYPE_DEFS) {

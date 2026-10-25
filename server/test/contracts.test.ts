@@ -5,7 +5,7 @@ import { createCompany } from '../src/companies';
 import { acceptContract, offerContract, processContract, rejectContract, reliability, terminateContract } from '../src/contracts';
 import { type Db, withTx } from '../src/db';
 import { awardRfq, placeBid, postRfq } from '../src/rfq';
-import { cash, freshDb, give, goods, ledgerTotal, newCompany } from './helpers';
+import { arriveAll, cash, freshDb, give, goods, ledgerTotal, newCompany } from './helpers';
 
 let db: Db;
 beforeAll(async () => { db = await freshDb(); });
@@ -99,11 +99,15 @@ describe('deliveries', () => {
     await process(id, at(t0, 2));
     const d = (await deliveries(id))[0];
     expect(d).toMatchObject({ status: 'settled', late_hours: 0, delivered_quality: 1, fee_cents: 8_00 });
-    // The lowest quality that meets the minimum is delivered.
+    // The lowest quality that meets the minimum is dispatched; it reaches the buyer after transit.
+    expect(await goods(db, buyer.id, 'flour', 1)).toBe(0);
+    expect(d.arrives_at).not.toBeNull();
+    await arriveAll(db);
     expect(await goods(db, buyer.id, 'flour', 1)).toBe(100);
     expect(await goods(db, seller.id, 'flour', 2)).toBe(100);
     expect(await cash(db, buyer.id)).toBe(10_000_00 - 800_00);
-    expect(await cash(db, seller.id)).toBe(sellerCash + 800_00 - 8_00);
+    // Seller: price − 1% fee − freight (100 × ¼ hop × 2 cents = 50 cents).
+    expect(await cash(db, seller.id)).toBe(sellerCash + 800_00 - 8_00 - 50);
     expect(await balance(buyer.id, 'escrow')).toBe(0);
     expect((await ledgerTotal(db)).balances).toBe(0);
   });
@@ -160,7 +164,7 @@ describe('deliveries', () => {
     for (const h of [2, 26, 50]) await process(id, at(t0, h));
     expect((await contract(id)).status).toBe('completed');
     expect(await balance(seller.id, 'bond')).toBe(0);
-    expect(await cash(db, seller.id)).toBe(1_000_00 + 3 * (800_00 - 8_00));
+    expect(await cash(db, seller.id)).toBe(1_000_00 + 3 * (800_00 - 8_00 - 50));
     const rel = await reliability(db, seller.id);
     expect(rel.score).toBeGreaterThan(80);
     expect(rel.verified).toBe(false); // only one buyer so far

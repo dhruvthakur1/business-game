@@ -61,6 +61,8 @@ export interface MeResponse {
   operatingCashFlow7dCents: number;
   openOrders: number;
   inventory: InventoryLot[];
+  /** Goods on their way to the warehouse (exchange buys and contract deliveries). */
+  inTransit: { id: number; productId: string; quality: number; qty: number; fromRegion: string; source: 'trade' | 'contract'; sellerName: string | null; arrivesAt: string }[];
   buildings: ServerBuilding[];
   research: Record<FamilyId, number>;
   designs: ServerDesign[];
@@ -172,7 +174,7 @@ export interface PlaceOrderResult {
   orderId: string;
   status: 'open' | 'filled';
   remaining: number;
-  fills: { tradeId: number; qty: number; priceCents: number; quality: number; feeCents: number }[];
+  fills: { tradeId: number; qty: number; priceCents: number; quality: number; feeCents: number; freightCents: number; arrivesAt: string }[];
 }
 
 export interface CollectResult {

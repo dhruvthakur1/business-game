@@ -3,6 +3,7 @@ import { createPool, type Db, withTx } from '../src/db';
 import { addGoods } from '../src/inventory';
 import { migrate } from '../src/migrate';
 import { upsertCatalog } from '../src/seed';
+import { deliverShipments } from '../src/shipping';
 
 let counter = 0;
 
@@ -37,6 +38,9 @@ export async function goods(db: Db, companyId: string, productId: string, qualit
 export async function give(db: Db, companyId: string, productId: string, quality: number, qty: number) {
   await withTx(db, (tx) => addGoods(tx, companyId, productId, quality, qty));
 }
+
+/** Lands every shipment as if its transit time had passed. */
+export const arriveAll = (db: Db) => deliverShipments(db, { now: new Date(Date.now() + 365 * 86_400_000) });
 
 /** The sum of every account must always be zero in a closed double-entry ledger. */
 export async function ledgerTotal(db: Db) {

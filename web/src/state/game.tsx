@@ -4,7 +4,7 @@ import type { ActivityItem, CollectResult, MeResponse, PlaceOrderResult, ServerB
 import { buildingTypeById, productById, registerDesigns } from '../data/catalog';
 import type { Building } from '../data/types';
 import { netPerDay, type Quality } from '../lib/economy';
-import { dec, num } from '../lib/format';
+import { dec, duration, num } from '../lib/format';
 import { PLOT_COLS } from '../../../shared/catalog';
 import { unlocksAt } from '../../../shared/levels';
 import { cycleOutput, opCostSplit } from '../../../shared/regions';
@@ -265,9 +265,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const res = await act(() => api<PlaceOrderResult>('/orders', { body: o }));
       if (res) {
         const filled = res.fills.reduce((s, f) => s + f.qty, 0);
+        const arrival = res.fills.length ? Math.max(...res.fills.map((f) => Date.parse(f.arrivesAt))) - Date.now() : 0;
+        const shipping = o.side === 'buy' && filled > 0
+          ? arrival > 1000 ? ` Arrives in about ${duration((arrival * (me?.timeScale ?? 1)) / 60_000)} of game time.` : ' Delivered.'
+          : o.side === 'sell' && filled > 0 ? ` Freight paid: ${dec(toCr(res.fills.reduce((s, f) => s + f.freightCents, 0)))} CR.` : '';
         notify(
           res.status === 'filled' ? 'Order filled' : filled > 0 ? 'Order partly filled' : 'Order placed',
-          filled > 0 ? `${num(filled)} filled · ${num(res.remaining)} resting on the book.` : `${num(res.remaining)} resting on the book.`,
+          (filled > 0 ? `${num(filled)} filled · ${num(res.remaining)} resting on the book.` : `${num(res.remaining)} resting on the book.`) + shipping,
           res.status === 'filled' ? 'ok' : 'info',
         );
       }

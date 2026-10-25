@@ -12,6 +12,7 @@ import {
 import type { Tx } from './db';
 import { badRequest, conflict, notFound } from './errors';
 import { addGoods, takeGoods } from './inventory';
+import { quoteFreight, ship } from './shipping';
 import { companyAccount, systemAccount, toCents, transfer } from './ledger';
 import { loadProduct } from './catalog';
 import { gameDayMs, gameHoursMs } from './time';
@@ -314,12 +315,18 @@ export async function processContract(tx: Tx, contractId: string, now = new Date
       lot = await pickLot(tx, c);
     }
     if (lot !== null) {
+      // Dispatch: the goods leave the seller now (on time is judged at dispatch) and reach the buyer after transit.
       await takeGoods(tx, c.seller_id, c.product_id, lot, c.qty);
-      await addGoods(tx, c.buyer_id, c.product_id, lot, c.qty);
+      const quote = await quoteFreight(tx, c.seller_id, c.buyer_id, c.product_id, c.qty);
+      const shipped = await ship(tx, { to: c.buyer_id, from: c.seller_id, productId: c.product_id, quality: lot, qty: c.qty, source: 'contract', sourceRef: d.id, quote });
       const fee = Math.round(d.funded_cents * CONTRACT_RULES.feePct);
       const buyerEscrow = await companyAccount(tx, c.buyer_id, 'escrow');
-      await transfer(tx, 'contract_settlement', `Delivered ${c.qty} ${product.name} Q${lot} (#${d.seq})`, buyerEscrow, await companyAccount(tx, c.seller_id, 'cash'), d.funded_cents - fee, `settle:${d.id}`);
+      const sellerCash = await companyAccount(tx, c.seller_id, 'cash');
+      await transfer(tx, 'contract_settlement', `Delivered ${c.qty} ${product.name} Q${lot} (#${d.seq})`, buyerEscrow, sellerCash, d.funded_cents - fee, `settle:${d.id}`);
       if (fee > 0) await transfer(tx, 'contract_settlement', `Contract fee (#${d.seq})`, buyerEscrow, feeSink, fee, `fee:${d.id}`);
+      const freight = Math.min(quote.freightCents, d.funded_cents - fee);
+      if (freight > 0) await transfer(tx, 'freight', `Freight: ${c.qty} ${product.name} (#${d.seq})`, sellerCash, await systemAccount(tx, 'sink:freight'), freight, `freight:${d.id}`);
+      await tx.query('UPDATE contract_deliveries SET freight_cents = $2, arrives_at = $3 WHERE id = $1', [d.id, freight, shipped.arrivesAt]);
       const lateHours = now > d.window_end ? Math.ceil((now.getTime() - d.window_end.getTime()) / gameHoursMs(1)) : 0;
       let penalty = 0;
       if (lateHours > 0) {

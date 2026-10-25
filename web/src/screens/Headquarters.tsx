@@ -28,7 +28,7 @@ const TIER_TONE: Record<string, string> = { T0: 'var(--t0-fg)', T1: 'var(--t1-fg
 const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 export function Headquarters() {
-  const { me: state, cash, netWorth, operatingCashFlow7d, buildings, ready, collect, activity, company, inventory } = useGame();
+  const { me: state, cash, netWorth, operatingCashFlow7d, buildings, ready, collect, activity, company, inventory, timeScale } = useGame();
   const [view, setView] = useState<'map' | 'list'>('map');
   const [collecting, setCollecting] = useState(false);
   const league = state?.league ?? null;
@@ -164,6 +164,23 @@ export function Headquarters() {
                 </div>
               );
             })}
+            {(state?.inTransit.length ?? 0) > 0 && (
+              <>
+                <span className="overline" style={{ paddingTop: 10 }}>In transit</span>
+                {state!.inTransit.map((s) => {
+                  const p = productById(s.productId);
+                  const left = Math.max(0, ((Date.parse(s.arrivesAt) - Date.now()) * timeScale) / 60_000);
+                  return (
+                    <div key={s.id} className="list-row">
+                      {p.art ? <img src={p.art} alt="" width={24} height={24} style={{ opacity: 0.6 }} /> : <span className="swatch" />}
+                      <span style={{ flex: 1 }}>{p.name} <span className="small muted">from {s.sellerName ?? s.fromRegion}</span></span>
+                      <span className="mono muted">{left > 0 ? duration(left) : 'arriving'}</span>
+                      <span className="mono" style={{ minWidth: 64, textAlign: 'right' }}>{num(s.qty)}</span>
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </Card>
 
           <Card title="Industry League" action={league ? <LeagueBadge league={league.tier} suffix={league.division} /> : undefined}>

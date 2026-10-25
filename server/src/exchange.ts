@@ -3,6 +3,7 @@ import { SELLER_FEE } from '../../shared/economy';
 import type { Db, Tx } from './db';
 import { badRequest, conflict, notFound } from './errors';
 import { addGoods, takeGoods } from './inventory';
+import { quoteFreight, ship } from './shipping';
 import { companyAccount, post, systemAccount, transfer } from './ledger';
 import { loadProduct } from './catalog';
 import { gameDayMs } from './time';
@@ -26,6 +27,9 @@ export interface Fill {
   priceCents: number;
   quality: number;
   feeCents: number;
+  /** Freight paid by the seller, and when the goods reach the buyer. */
+  freightCents: number;
+  arrivesAt: string;
 }
 
 interface OrderRow {
@@ -93,6 +97,7 @@ export async function placeOrder(tx: Tx, companyId: string, input: PlaceOrderInp
       );
 
   const feeSink = await systemAccount(tx, 'sink:exchange_fees');
+  const freightSink = await systemAccount(tx, 'sink:freight');
   const fills: Fill[] = [];
   let remaining = qty;
 
@@ -112,11 +117,14 @@ export async function placeOrder(tx: Tx, companyId: string, input: PlaceOrderInp
     // A taker buyer locked its own limit price; refund the improvement over the maker's price.
     const lockedPrice = side === 'buy' ? priceCents : price;
     const refund = (lockedPrice - price) * fillQty;
+    // The seller ships to the buyer's region and pays freight out of the proceeds.
+    const quote = await quoteFreight(tx, sellerId, buyerId, productId, fillQty);
+    const freight = Math.min(quote.freightCents, gross - fee);
 
     const trade = await tx.query<{ id: number }>(
-      `INSERT INTO trades (product_id, buy_order_id, sell_order_id, buyer_id, seller_id, price_cents, qty, quality, fee_cents)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-      [productId, side === 'buy' ? orderId : maker.id, side === 'sell' ? orderId : maker.id, buyerId, sellerId, price, fillQty, goodsQuality, fee],
+      `INSERT INTO trades (product_id, buy_order_id, sell_order_id, buyer_id, seller_id, price_cents, qty, quality, fee_cents, freight_cents)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+      [productId, side === 'buy' ? orderId : maker.id, side === 'sell' ? orderId : maker.id, buyerId, sellerId, price, fillQty, goodsQuality, fee, freight],
     );
     const tradeId = trade.rows[0].id;
 
@@ -126,18 +134,19 @@ export async function placeOrder(tx: Tx, companyId: string, input: PlaceOrderInp
       idempotencyKey: `trade:${tradeId}`,
       entries: [
         { accountId: buyerEscrow, amount: -(gross + refund) },
-        { accountId: sellerCash, amount: gross - fee },
+        { accountId: sellerCash, amount: gross - fee - freight },
         { accountId: feeSink, amount: fee },
+        ...(freight > 0 ? [{ accountId: freightSink, amount: freight }] : []),
         ...(refund > 0 ? [{ accountId: buyerCash, amount: refund }] : []),
       ],
     });
-    await addGoods(tx, buyerId, productId, goodsQuality, fillQty);
+    const shipped = await ship(tx, { to: buyerId, from: sellerId, productId, quality: goodsQuality, qty: fillQty, source: 'trade', sourceRef: String(tradeId), quote: { ...quote, freightCents: freight } });
     await tx.query(
       `UPDATE orders SET remaining = remaining - $2, status = CASE WHEN remaining - $2 = 0 THEN 'filled' ELSE status END WHERE id = $1`,
       [maker.id, fillQty],
     );
     remaining -= fillQty;
-    fills.push({ tradeId, qty: fillQty, priceCents: price, quality: goodsQuality, feeCents: fee });
+    fills.push({ tradeId, qty: fillQty, priceCents: price, quality: goodsQuality, feeCents: fee, freightCents: freight, arrivesAt: shipped.arrivesAt.toISOString() });
     for (const who of [buyerId, sellerId]) {
       await awardXp(tx, who, 'trade', (gross / 100) * XP_PER_CR_TRADE, { note: `Traded ${fillQty} ${product.name}`, capKey: 'market', dailyCap: XP_CAPS.market });
     }

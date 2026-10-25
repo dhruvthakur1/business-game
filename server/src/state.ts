@@ -9,11 +9,12 @@ import { leagueSummary } from './leagues';
 import { allDesigns } from './brands';
 import { researchPoints } from './research';
 import { seasonSummary } from './season';
+import { incomingShipments } from './shipping';
 
 type Q = Pick<Tx, 'query'>;
 
 /** Cash-account flows from running the business (before debt service). */
-export const OPERATING_KINDS = ['op_cost', 'wages', 'upkeep', 'npc_purchase', 'npc_sale', 'order_lock', 'order_refund', 'order_cancel', 'trade_settlement'];
+export const OPERATING_KINDS = ['op_cost', 'wages', 'freight', 'upkeep', 'npc_purchase', 'npc_sale', 'order_lock', 'order_refund', 'order_cancel', 'trade_settlement'];
 
 /** Net operating cash flow on the cash account between two instants. */
 export async function operatingFlowCents(q: Q, companyId: string, from: Date, to: Date = new Date()): Promise<number> {
@@ -48,7 +49,10 @@ export async function assetsCents(q: Q, companyId: string): Promise<number> {
        (SELECT COALESCE(SUM(balance_cents), 0) FROM accounts WHERE company_id = $1 AND kind <> 'wallet')::bigint AS money,
        (SELECT COALESCE(SUM(i.qty * LEAST(p.ref_price_cents, COALESCE(r.price_cents, p.ref_price_cents))), 0)
           FROM inventory i JOIN products p ON p.id = i.product_id LEFT JOIN reference_prices r ON r.product_id = p.id
-          WHERE i.company_id = $1)::bigint AS goods,
+          WHERE i.company_id = $1)::bigint
+       + (SELECT COALESCE(SUM(s.qty * LEAST(p.ref_price_cents, COALESCE(r.price_cents, p.ref_price_cents))), 0)
+          FROM shipments s JOIN products p ON p.id = s.product_id LEFT JOIN reference_prices r ON r.product_id = p.id
+          WHERE s.company_id = $1 AND s.delivered_at IS NULL)::bigint AS goods,
        (SELECT COALESCE(SUM(bt.build_cost_cents * b.level), 0) FROM buildings b JOIN building_types bt ON bt.id = b.building_type_id
           WHERE b.company_id = $1)::bigint AS buildings,
        (SELECT COALESCE(SUM(o.remaining * p.ref_price_cents), 0) FROM orders o JOIN products p ON p.id = o.product_id
@@ -73,7 +77,7 @@ export async function debtCents(q: Q, companyId: string): Promise<number> {
 
 /** Everything the client needs to render the company dashboard in one round trip. */
 export async function companyState(db: Db, company: Company) {
-  const [accounts, inventory, buildings, assets, debt, flow, orders, flags, xp, league, research, designs, season] = await Promise.all([
+  const [accounts, inventory, buildings, assets, debt, flow, orders, flags, xp, league, research, designs, season, inTransit] = await Promise.all([
     db.query<{ kind: string; balance_cents: number }>('SELECT kind, balance_cents FROM accounts WHERE company_id = $1', [company.id]),
     listInventory(db, company.id),
     listBuildings(db, company.id),
@@ -87,6 +91,7 @@ export async function companyState(db: Db, company: Company) {
     researchPoints(db, company.id),
     allDesigns(db),
     seasonSummary(db, company.id),
+    incomingShipments(db, company.id),
   ]);
   const bal = (kind: string) => accounts.rows.find((a) => a.kind === kind)?.balance_cents ?? 0;
 
@@ -107,6 +112,8 @@ export async function companyState(db: Db, company: Company) {
     operatingCashFlow7dCents: flow,
     openOrders: orders.rows[0].n,
     inventory,
+    /** Goods on their way to this company's warehouse. */
+    inTransit,
     buildings,
     /** Research points per family (drives the quality bonus preview). */
     research,

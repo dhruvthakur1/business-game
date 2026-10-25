@@ -55,3 +55,41 @@ export function opCostSplit(opCost: number, region: string) {
   const wages = opCost * WAGE_SHARE * regionRule(region).wageIndex;
   return { wages, other, total: wages + other };
 }
+
+// ---------- Freight (report section 2: transport) ----------
+
+/**
+ * Regions sit on a square: North–East–South–West–North are neighbours (1 hop); North–South and East–West are
+ * across (2 hops). A delivery inside one region counts as a quarter hop.
+ */
+const NEIGHBOURS: Record<RegionId, RegionId[]> = { north: ['east', 'west'], east: ['north', 'south'], south: ['east', 'west'], west: ['north', 'south'] };
+
+export function hops(from: string, to: string): number {
+  if (from === to) return 0;
+  return NEIGHBOURS[from as RegionId]?.includes(to as RegionId) ? 1 : 2;
+}
+
+export const FREIGHT = {
+  /** CR per unit of weight per hop. */
+  ratePerHop: 0.02,
+  intraRegionHop: 0.25,
+  /** Shipments to or from the South's port hubs cost this share of the normal rate. */
+  southDiscount: 0.5,
+  intraRegionHours: 1,
+  hoursPerHop: 4,
+} as const;
+
+/** Freight in CR: units × unit weight × hops × 0.02 (intra-region = 0.25 hop), halved through the South. */
+export function freightCost(units: number, unitWeight: number, from: string, to: string): number {
+  const h = hops(from, to);
+  const effective = h === 0 ? FREIGHT.intraRegionHop : h;
+  const south = from === 'south' || to === 'south' ? FREIGHT.southDiscount : 1;
+  return units * unitWeight * effective * FREIGHT.ratePerHop * south;
+}
+
+/** Game hours in transit: 1 inside a region, 4 per hop between regions. Weightless goods (power, research) are instant. */
+export function transitHours(unitWeight: number, from: string, to: string): number {
+  if (unitWeight <= 0) return 0;
+  const h = hops(from, to);
+  return h === 0 ? FREIGHT.intraRegionHours : h * FREIGHT.hoursPerHop;
+}

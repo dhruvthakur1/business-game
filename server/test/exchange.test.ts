@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { type Db, withTx } from '../src/db';
 import { cancelOrder, orderBook, placeOrder, type PlaceOrderInput } from '../src/exchange';
-import { cash, freshDb, give, goods, ledgerTotal, newCompany } from './helpers';
+import { arriveAll, cash, freshDb, give, goods, ledgerTotal, newCompany } from './helpers';
 
 let db: Db;
 beforeAll(async () => { db = await freshDb(); });
@@ -24,12 +24,16 @@ describe('exchange', () => {
     const feesBefore = await fees();
     const bid = await order(buyer.id, { productId: flourId, side: 'buy', qty: 60, priceCents: 850, quality: 1 });
     expect(bid.status).toBe('filled');
-    expect(bid.fills).toEqual([expect.objectContaining({ qty: 60, priceCents: 800, quality: 1, feeCents: 960 })]);
+    // Same region: freight is 60 units × weight 1 × ¼ hop × 2 cents = 30 cents, paid by the seller.
+    expect(bid.fills).toEqual([expect.objectContaining({ qty: 60, priceCents: 800, quality: 1, feeCents: 960, freightCents: 30 })]);
 
     expect(await cash(db, buyer.id)).toBe(10_000_00 - 60 * 800);
     expect(await cash(db, buyer.id, 'escrow')).toBe(0);
-    expect(await cash(db, seller.id)).toBe(60 * 800 - 960);
+    expect(await cash(db, seller.id)).toBe(60 * 800 - 960 - 30);
     expect(await fees()).toBe(feesBefore + 960);
+    // The flour is on its way (1 hour inside a region), then lands in the warehouse.
+    expect(await goods(db, buyer.id, flourId, 1)).toBe(0);
+    await arriveAll(db);
     expect(await goods(db, buyer.id, flourId, 1)).toBe(60);
 
     const book = await orderBook(db, flourId);
@@ -50,7 +54,8 @@ describe('exchange', () => {
     const res = await order(buyer.id, { productId: 'steel', side: 'buy', qty: 120, priceCents: 2600, quality: 0 });
     expect(res.fills.map((f) => [f.qty, f.priceCents])).toEqual([[50, 2400], [50, 2400], [20, 2500]]);
     // b's 2400 ask was first in time at the best price.
-    expect(await cash(db, b.id)).toBe(50 * 2400 - Math.round(50 * 2400 * 0.02));
+    // Steel weighs 2: freight 50 × 2 × ¼ × 2 cents = 50 cents.
+    expect(await cash(db, b.id)).toBe(50 * 2400 - Math.round(50 * 2400 * 0.02) - 50);
   });
 
   it('respects the minimum quality on bids', async () => {
@@ -70,6 +75,7 @@ describe('exchange', () => {
     await give(db, seller.id, 'bread', 2, 40);
     const res = await order(seller.id, { productId: 'bread', side: 'sell', qty: 40, priceCents: 2700, quality: 2 });
     expect(res.fills).toEqual([expect.objectContaining({ qty: 40, priceCents: 2800, quality: 2 })]);
+    await arriveAll(db);
     expect(await goods(db, buyer.id, 'bread', 2)).toBe(40);
     expect(await cash(db, buyer.id, 'escrow')).toBe(0);
   });
