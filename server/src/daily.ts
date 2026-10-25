@@ -1,8 +1,8 @@
-import { BANKRUPTCY, DELINQUENCY, OVERDRAFT, RECEIVERSHIP } from '../../shared/bank';
+import { BANKRUPTCY, CREDIT_LINE, DELINQUENCY, OVERDRAFT, RECEIVERSHIP } from '../../shared/bank';
 import { updateReputation } from './brands';
 import { closeOwnerDay } from './wealth';
 import { creditScore } from '../../shared/economy';
-import { applyPayment, creditProfile, logLoanEvent, openLoans, saveLoan, type LoanRow } from './bank';
+import { OPEN, applyPayment, creditProfile, logLoanEvent, openLoans, paySavingsInterest, reviewCreditLine, saveLoan, type LoanRow } from './bank';
 import { type Db, type Tx, withTx } from './db';
 import { cancelOrder } from './exchange';
 import { companyAccount, systemAccount, toCents, transfer } from './ledger';
@@ -56,7 +56,16 @@ export async function closeDay(tx: Tx, companyId: string, day: number): Promise<
     if (loan.arrears_cents > 0) loan.arrears_cents += Math.round(loan.arrears_cents * DELINQUENCY.penaltyRate);
 
     let installment = 0;
-    if (loan.installments_due < loan.term_days && loan.outstanding_cents > 0) {
+    if (loan.product === 'credit_line') {
+      // Revolving: the limit is reviewed weekly; interest is charged daily on the drawn balance only.
+      if (day - (loan.limit_reviewed_day ?? loan.created_day) >= CREDIT_LINE.reviewDays) await reviewCreditLine(tx, loan, day);
+      const interest = Math.round(loan.outstanding_cents * rate);
+      if (interest > 0) {
+        installment = interest;
+        loan.arrears_cents += interest;
+        loan.installments_due += 1;
+      }
+    } else if (loan.installments_due < loan.term_days && loan.outstanding_cents > 0) {
       const interest = Math.round(loan.outstanding_cents * rate);
       const last = loan.installments_due === loan.term_days - 1;
       const principalPart = last ? loan.outstanding_cents : Math.min(loan.outstanding_cents, Math.max(0, loan.installment_cents - interest));
@@ -100,7 +109,7 @@ export async function closeDay(tx: Tx, companyId: string, day: number): Promise<
       if (loan.days_past_due >= DELINQUENCY.collectionsAtDays) loan.status = 'collections';
       else if (loan.days_past_due >= DELINQUENCY.restructureAtDays && !loan.restructured) loan.status = 'restructure_offered';
       else if (loan.status !== 'restructure_offered') loan.status = 'late';
-    } else if (loan.outstanding_cents === 0 && loan.installments_due >= loan.term_days) {
+    } else if (loan.product !== 'credit_line' && loan.outstanding_cents === 0 && loan.installments_due >= loan.term_days) {
       loan.status = 'repaid';
       await logLoanEvent(tx, loan, day, 'repaid');
     }
@@ -168,6 +177,9 @@ export async function closeDay(tx: Tx, companyId: string, day: number): Promise<
     await tx.query('UPDATE companies SET credit_penalty = GREATEST(0, credit_penalty + $2) WHERE id = $1', [companyId, penaltyDelta]);
   }
 
+  // 3b. Savings interest (a small, capped faucet).
+  await paySavingsInterest(tx, companyId);
+
   // 4. Receivership
   const defaulting = (await openLoans(tx, companyId)).filter((l) => l.product !== 'overdraft' && l.days_past_due >= DELINQUENCY.receivershipAtDays);
   if (defaulting.length > 0) {
@@ -203,6 +215,10 @@ export async function closeDay(tx: Tx, companyId: string, day: number): Promise<
 export async function receivership(tx: Tx, companyId: string, day: number): Promise<boolean> {
   const liquidator = await systemAccount(tx, 'npc:liquidator');
   const cash = await companyAccount(tx, companyId, 'cash');
+  // Savings are company money: they go to the debts first.
+  const savings = await companyAccount(tx, companyId, 'savings');
+  const saved = Number((await tx.query<{ balance_cents: number }>('SELECT balance_cents FROM accounts WHERE id = $1', [savings])).rows[0].balance_cents);
+  if (saved > 0) await transfer(tx, 'savings', 'Receivership: savings applied to debts', savings, cash, saved);
 
   const owed = async () => (await openLoans(tx, companyId)).reduce((s, l) => s + l.outstanding_cents + l.arrears_cents, 0);
   const payDown = async () => {
@@ -250,8 +266,20 @@ export async function receivership(tx: Tx, companyId: string, day: number): Prom
     for (const b of buildings.rows) {
       if ((await owed()) === 0) break;
       const price = Math.round(Number(b.invested) * RECEIVERSHIP.resaleFactor * RECEIVERSHIP.buildingFactor);
+      // A mortgage's lien: the building's sale repays that mortgage before anything else.
+      const lien = (await tx.query<LoanRow>(`SELECT * FROM loans WHERE building_id = $1 AND product = 'mortgage' AND ${OPEN} FOR UPDATE`, [b.id])).rows[0];
       await tx.query('DELETE FROM buildings WHERE id = $1', [b.id]);
       await transfer(tx, 'liquidation', `Receivership: sold ${b.name}`, liquidator, cash, price);
+      if (lien) {
+        const paid = await applyPayment(tx, lien, price, { includeOutstanding: true, memo: `Mortgage lien on ${b.name}` });
+        if (paid > 0) await logLoanEvent(tx, lien, day, 'liquidation', paid, `${b.name} sold`);
+        if (lien.outstanding_cents === 0 && lien.arrears_cents === 0) {
+          lien.status = 'repaid';
+          lien.days_past_due = 0;
+          await saveLoan(tx, lien);
+          await logLoanEvent(tx, lien, day, 'repaid');
+        }
+      }
       await payDown();
     }
   }

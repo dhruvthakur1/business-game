@@ -1,9 +1,9 @@
-import { BANKRUPTCY, DELINQUENCY, OVERDRAFT, STARTER_LOAN, TERM_LOAN, type LoanProduct, type LoanStatus } from '../../shared/bank';
+import { BANKRUPTCY, CREDIT_LINE, DELINQUENCY, MORTGAGE, OVERDRAFT, resaleValue, SAVINGS, STARTER_LOAN, TERM_LOAN, type LoanProduct, type LoanStatus } from '../../shared/bank';
 import { creditScore, emi, rateTier, type CreditFactors } from '../../shared/economy';
 import type { Db, Tx } from './db';
 import { badRequest, conflict, notFound } from './errors';
 import { companyAccount, systemAccount, toCents, transfer } from './ledger';
-import { assetsCents, debtCents, operatingFlowCents } from './state';
+import { assetsCents, debtCents, operatingFlowCents, revenueCents } from './state';
 import { gameDay, gameDayMs, gameDayStart } from './time';
 
 type Q = Pick<Tx, 'query'>;
@@ -25,6 +25,9 @@ export interface LoanRow {
   status: LoanStatus;
   restructured: boolean;
   created_day: number;
+  building_id: string | null;
+  credit_limit_cents: number | null;
+  limit_reviewed_day: number | null;
 }
 
 export const OPEN = "status NOT IN ('repaid', 'defaulted')";
@@ -137,7 +140,48 @@ export async function loanOffers(q: Q, companyId: string, profile?: CreditProfil
     minDscr: p.tier.minDscr,
     terms: TERM_LOAN.terms,
   };
-  return { starter, term };
+  const blockedOr = (minLevel: number) =>
+    blockedReason ?? (c.level < minLevel ? `Unlocks at company level ${minLevel}.` : p.score < TERM_LOAN.minScore ? `Declined: credit score below ${TERM_LOAN.minScore}.` : undefined);
+
+  // Mortgages: one per building, up to the tier's LTV × resale value.
+  const mortgageReason = blockedOr(MORTGAGE.minLevel);
+  const buildings = await q.query<{ id: string; name: string; level: number; build_cost_cents: number; mortgaged: boolean }>(
+    `SELECT b.id, b.name, b.level, bt.build_cost_cents,
+            EXISTS (SELECT 1 FROM loans l WHERE l.building_id = b.id AND l.product = 'mortgage' AND l.${OPEN}) AS mortgaged
+     FROM buildings b JOIN building_types bt ON bt.id = b.building_type_id WHERE b.company_id = $1 ORDER BY b.plot`,
+    [companyId],
+  );
+  const mortgage = {
+    available: !mortgageReason,
+    reason: mortgageReason,
+    dailyRate: Math.max(0.0005, (p.tier.dailyRate ?? 0.004) - MORTGAGE.rateDiscount),
+    maxLtv: p.tier.maxLtv,
+    minDscr: p.tier.minDscr,
+    terms: MORTGAGE.terms,
+    minCents: toCents(MORTGAGE.minAmount),
+    buildings: buildings.rows.map((b) => ({
+      id: b.id,
+      name: b.name,
+      resaleCents: Math.round(resaleValue(Number(b.build_cost_cents), b.level)),
+      maxCents: Math.floor((p.tier.maxLtv * resaleValue(Number(b.build_cost_cents), b.level)) / 10_000) * 10_000,
+      mortgaged: b.mortgaged,
+    })),
+  };
+
+  // Line of credit: limit = 30% of the last 7 game days' revenue.
+  const limitCents = await creditLineLimit(q, companyId);
+  let lineReason = blockedOr(CREDIT_LINE.minLevel);
+  if (!lineReason && limitCents < toCents(CREDIT_LINE.minLimit)) {
+    lineReason = `Your last 7 days of sales support less than ${CREDIT_LINE.minLimit.toLocaleString('en-US')} CR of credit.`;
+  }
+  const creditLine = { available: !lineReason, reason: lineReason, limitCents, dailyRate: (p.tier.dailyRate ?? 0.004) + CREDIT_LINE.rateSpread };
+  return { starter, term, mortgage, creditLine };
+}
+
+/** 30% of the last 7 game days' revenue, rounded down to 100 CR. */
+export async function creditLineLimit(q: Q, companyId: string): Promise<number> {
+  const revenue = await revenueCents(q, companyId, new Date(Date.now() - 7 * gameDayMs()), new Date());
+  return Math.floor((CREDIT_LINE.revenueShare * revenue) / 10_000) * 10_000;
 }
 
 // ---------------------------------------------------------------- borrowing
@@ -146,7 +190,7 @@ async function lockCompany(tx: Tx, companyId: string) {
   await tx.query('SELECT id FROM companies WHERE id = $1 FOR UPDATE', [companyId]);
 }
 
-export async function takeLoan(tx: Tx, companyId: string, input: { product: 'starter' | 'term'; principalCents?: number; days?: number }) {
+export async function takeLoan(tx: Tx, companyId: string, input: { product: 'starter' | 'term' | 'mortgage'; principalCents?: number; days?: number; buildingId?: string }) {
   await lockCompany(tx, companyId);
   const profile = await creditProfile(tx, companyId);
   const offers = await loanOffers(tx, companyId, profile);
@@ -160,34 +204,43 @@ export async function takeLoan(tx: Tx, companyId: string, input: { product: 'sta
     days = offers.starter.days;
     rate = offers.starter.dailyRate;
   } else {
-    if (!offers.term.available) throw conflict('not_eligible', offers.term.reason ?? 'Not eligible.');
+    const offer = input.product === 'mortgage' ? offers.mortgage : offers.term;
+    if (!offer.available) throw conflict('not_eligible', offer.reason ?? 'Not eligible.');
     principal = input.principalCents ?? 0;
     days = input.days ?? 0;
-    rate = offers.term.dailyRate;
-    if (!TERM_LOAN.terms.includes(days)) throw badRequest(`Term must be one of ${TERM_LOAN.terms.join(', ')} days.`);
-    if (!Number.isInteger(principal) || principal < offers.term.minCents || principal > offers.term.maxCents) {
-      throw badRequest(`Amount must be between ${offers.term.minCents / 100} and ${offers.term.maxCents / 100} CR.`);
+    rate = offer.dailyRate;
+    let maxCents = input.product === 'term' ? offers.term.maxCents : 0;
+    if (input.product === 'mortgage') {
+      const b = offers.mortgage.buildings.find((x) => x.id === input.buildingId);
+      if (!b) throw notFound('Building');
+      if (b.mortgaged) throw conflict('mortgaged', `${b.name} already secures a mortgage.`);
+      maxCents = b.maxCents;
+    }
+    if (!offer.terms.includes(days)) throw badRequest(`Term must be one of ${offer.terms.join(', ')} days.`);
+    if (!Number.isInteger(principal) || principal < offer.minCents || principal > maxCents) {
+      throw badRequest(`Amount must be between ${offer.minCents / 100} and ${maxCents / 100} CR.`);
     }
     const installment = emi(principal, rate, days);
     const dscr = profile.avgDailyOperatingCents / (profile.dailyDebtServiceCents + installment);
-    if (dscr < offers.term.minDscr) {
-      throw conflict('dscr_too_low', `Debt cover would be ${dscr.toFixed(2)}×; the bank needs ${offers.term.minDscr}×. Borrow less or for longer.`);
+    if (dscr < offer.minDscr) {
+      throw conflict('dscr_too_low', `Debt cover would be ${dscr.toFixed(2)}×; the bank needs ${offer.minDscr}×. Borrow less or for longer.`);
     }
   }
 
   const installment = Math.round(emi(principal, rate, days));
   const today = gameDay();
   const res = await tx.query<LoanRow>(
-    `INSERT INTO loans (company_id, product, principal_cents, daily_rate, term_days, installment_cents, outstanding_cents, created_day)
-     VALUES ($1, $2, $3, $4, $5, $6, $3, $7) RETURNING *`,
-    [companyId, input.product, principal, rate, days, installment, today],
+    `INSERT INTO loans (company_id, product, principal_cents, daily_rate, term_days, installment_cents, outstanding_cents, created_day, building_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $3, $7, $8) RETURNING *`,
+    [companyId, input.product, principal, rate, days, installment, today, input.product === 'mortgage' ? input.buildingId : null],
   );
   const loan = res.rows[0];
   if (input.product === 'starter') await tx.query('UPDATE companies SET starter_loan_taken = true WHERE id = $1', [companyId]);
 
   const bank = await systemAccount(tx, 'npc:bank');
   const cash = await companyAccount(tx, companyId, 'cash');
-  await transfer(tx, 'loan_disbursement', `${input.product === 'starter' ? 'Starter' : 'Term'} loan: ${days} days at ${(rate * 100).toFixed(2)}%/day`, bank, cash, principal, `loan:${loan.id}`);
+  const label = input.product === 'starter' ? 'Starter loan' : input.product === 'mortgage' ? 'Mortgage' : 'Term loan';
+  await transfer(tx, 'loan_disbursement', `${label}: ${days} days at ${(rate * 100).toFixed(2)}%/day`, bank, cash, principal, `loan:${loan.id}`);
   await logLoanEvent(tx, loan, today, 'disbursed', principal);
   return { loanId: loan.id, principalCents: principal, installmentCents: installment, dailyRate: rate, days };
 }
@@ -283,12 +336,99 @@ export async function restructureLoan(tx: Tx, companyId: string, loanId: string)
   return { loanId, installmentCents: loan.installment_cents, termDays: newRemaining, dailyRate: rate };
 }
 
+// ---------------------------------------------------------------- line of credit
+
+async function openLine(tx: Tx, companyId: string): Promise<LoanRow | null> {
+  return (await tx.query<LoanRow>(`SELECT * FROM loans WHERE company_id = $1 AND product = 'credit_line' AND ${OPEN} FOR UPDATE`, [companyId])).rows[0] ?? null;
+}
+
+export async function openCreditLine(tx: Tx, companyId: string) {
+  await lockCompany(tx, companyId);
+  if (await openLine(tx, companyId)) throw conflict('open', 'You already have a line of credit.');
+  const offers = await loanOffers(tx, companyId);
+  if (!offers.creditLine.available) throw conflict('not_eligible', offers.creditLine.reason ?? 'Not eligible.');
+  const today = gameDay();
+  const res = await tx.query<LoanRow>(
+    `INSERT INTO loans (company_id, product, principal_cents, daily_rate, term_days, installment_cents, outstanding_cents, created_day, credit_limit_cents, limit_reviewed_day)
+     VALUES ($1, 'credit_line', 0, $2, 0, 0, 0, $3, $4, $3) RETURNING *`,
+    [companyId, offers.creditLine.dailyRate, today, offers.creditLine.limitCents],
+  );
+  await logLoanEvent(tx, res.rows[0], today, 'limit_review', offers.creditLine.limitCents, 'opened');
+  return { loanId: res.rows[0].id, limitCents: offers.creditLine.limitCents, dailyRate: offers.creditLine.dailyRate };
+}
+
+/** Draws on the line, up to its limit. Not allowed while interest is overdue. */
+export async function drawCredit(tx: Tx, companyId: string, cents: number) {
+  if (!Number.isInteger(cents) || cents <= 0) throw badRequest('Draw a positive amount.');
+  await lockCompany(tx, companyId);
+  const line = await openLine(tx, companyId);
+  if (!line) throw notFound('Line of credit');
+  if (line.arrears_cents > 0) throw conflict('late', 'Pay the overdue interest before drawing again.');
+  const room = Number(line.credit_limit_cents) - line.outstanding_cents;
+  if (cents > room) throw conflict('over_limit', `You can draw up to ${(room / 100).toFixed(2)} CR more.`);
+  await transfer(tx, 'loan_disbursement', 'Line of credit draw', await systemAccount(tx, 'npc:bank'), await companyAccount(tx, companyId, 'cash'), cents);
+  line.outstanding_cents += cents;
+  await tx.query('UPDATE loans SET principal_cents = principal_cents + $2 WHERE id = $1', [line.id, cents]);
+  await saveLoan(tx, line);
+  await logLoanEvent(tx, line, gameDay(), 'credit_draw', cents);
+  return { drawnCents: line.outstanding_cents, limitCents: Number(line.credit_limit_cents) };
+}
+
+/** Repays part or all of the drawn balance (overdue interest first). The line stays open. */
+export async function repayCredit(tx: Tx, companyId: string, cents: number) {
+  if (!Number.isInteger(cents) || cents <= 0) throw badRequest('Repay a positive amount.');
+  await lockCompany(tx, companyId);
+  const line = await openLine(tx, companyId);
+  if (!line) throw notFound('Line of credit');
+  const paid = await applyPayment(tx, line, cents, { includeOutstanding: true, memo: 'Line of credit repayment' });
+  if (line.arrears_cents === 0) {
+    line.days_past_due = 0;
+    line.status = 'active';
+    await saveLoan(tx, line);
+  }
+  await logLoanEvent(tx, line, gameDay(), 'credit_repay', paid);
+  return { paidCents: paid, drawnCents: line.outstanding_cents };
+}
+
+/** Weekly review at the daily close: the limit follows the last 7 days' revenue. Returns the new limit. */
+export async function reviewCreditLine(tx: Tx, line: LoanRow, day: number): Promise<number> {
+  const limit = await creditLineLimit(tx, line.company_id);
+  await tx.query('UPDATE loans SET credit_limit_cents = $2, limit_reviewed_day = $3 WHERE id = $1', [line.id, limit, day]);
+  line.credit_limit_cents = limit;
+  line.limit_reviewed_day = day;
+  await logLoanEvent(tx, line, day, 'limit_review', limit);
+  return limit;
+}
+
+// ---------------------------------------------------------------- savings
+
+export async function depositSavings(tx: Tx, companyId: string, cents: number) {
+  if (!Number.isInteger(cents) || cents <= 0) throw badRequest('Deposit a positive amount.');
+  await transfer(tx, 'savings', 'Moved to savings', await companyAccount(tx, companyId, 'cash'), await companyAccount(tx, companyId, 'savings'), cents);
+  return { depositedCents: cents };
+}
+
+export async function withdrawSavings(tx: Tx, companyId: string, cents: number) {
+  if (!Number.isInteger(cents) || cents <= 0) throw badRequest('Withdraw a positive amount.');
+  await transfer(tx, 'savings', 'Moved from savings', await companyAccount(tx, companyId, 'savings'), await companyAccount(tx, companyId, 'cash'), cents);
+  return { withdrawnCents: cents };
+}
+
+/** Daily close: savings earn 0.02%/day on balances up to 500k CR. */
+export async function paySavingsInterest(tx: Tx, companyId: string): Promise<number> {
+  const acct = await companyAccount(tx, companyId, 'savings');
+  const bal = Number((await tx.query<{ balance_cents: number }>('SELECT balance_cents FROM accounts WHERE id = $1', [acct])).rows[0].balance_cents);
+  const interest = Math.floor(Math.min(bal, toCents(SAVINGS.cap)) * SAVINGS.dailyRate);
+  if (interest > 0) await transfer(tx, 'savings_interest', 'Savings interest', await systemAccount(tx, 'faucet:deposit_interest'), acct, interest);
+  return interest;
+}
+
 // ---------------------------------------------------------------- overview for the client
 
 export async function bankOverview(db: Db, companyId: string, opts: { devTools: boolean }) {
   const profile = await creditProfile(db, companyId);
   const offers = await loanOffers(db, companyId, profile);
-  const [loans, events, company, upkeep] = await Promise.all([
+  const [loans, events, company, upkeep, savings] = await Promise.all([
     db.query<LoanRow>(
       `SELECT * FROM loans WHERE company_id = $1 AND (${OPEN} OR created_at > now() - interval '30 days') ORDER BY created_at DESC LIMIT 20`,
       [companyId],
@@ -303,6 +443,7 @@ export async function bankOverview(db: Db, companyId: string, opts: { devTools: 
        FROM buildings b JOIN building_types bt ON bt.id = b.building_type_id WHERE b.company_id = $1`,
       [companyId],
     ),
+    db.query<{ balance_cents: number }>("SELECT balance_cents FROM accounts WHERE company_id = $1 AND kind = 'savings'", [companyId]),
   ]);
   const today = gameDay();
   return {
@@ -313,6 +454,7 @@ export async function bankOverview(db: Db, companyId: string, opts: { devTools: 
     offers,
     upkeep: { dailyCents: Number(upkeep.rows[0].daily), arrearsCents: Number(company.rows[0].upkeep_arrears_cents) },
     overdraft: { limitCents: toCents(OVERDRAFT.limit), dailyRate: OVERDRAFT.dailyRate, drawFeeCents: toCents(OVERDRAFT.drawFee) },
+    savings: { balanceCents: Number(savings.rows[0]?.balance_cents ?? 0), dailyRate: SAVINGS.dailyRate, capCents: toCents(SAVINGS.cap) },
     borrowBlockedUntil: company.rows[0].borrow_blocked_until,
     bankruptcies: company.rows[0].bankruptcies,
     loans: loans.rows.map((l) => ({
@@ -330,6 +472,9 @@ export async function bankOverview(db: Db, companyId: string, opts: { devTools: 
       daysPastDue: l.days_past_due,
       restructured: l.restructured,
       createdDay: l.created_day,
+      buildingId: l.building_id,
+      creditLimitCents: l.credit_limit_cents === null ? null : Number(l.credit_limit_cents),
+      limitReviewedDay: l.limit_reviewed_day,
     })),
     events: events.rows.map((e) => ({ id: e.id, loanId: e.loan_id, day: e.day, kind: e.kind, amountCents: Number(e.amount_cents), note: e.note })),
     devTools: opts.devTools,

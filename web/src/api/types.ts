@@ -185,7 +185,7 @@ export type LoanStatus = 'active' | 'late' | 'restructure_offered' | 'collection
 
 export interface ServerLoan {
   id: string;
-  product: 'starter' | 'term' | 'overdraft';
+  product: 'starter' | 'term' | 'overdraft' | 'mortgage' | 'credit_line';
   status: LoanStatus;
   principalCents: number;
   dailyRate: number;
@@ -198,6 +198,11 @@ export interface ServerLoan {
   daysPastDue: number;
   restructured: boolean;
   createdDay: number;
+  /** Mortgage: the building it is secured on. */
+  buildingId: string | null;
+  /** Line of credit: current limit (outstandingCents is the drawn balance). */
+  creditLimitCents: number | null;
+  limitReviewedDay: number | null;
 }
 
 export interface BankOverview {
@@ -216,7 +221,13 @@ export interface BankOverview {
   offers: {
     starter: { available: boolean; reason?: string; amountCents: number; days: number; dailyRate: number; installmentCents: number };
     term: { available: boolean; reason?: string; maxCents: number; minCents: number; dailyRate: number; minDscr: number; terms: number[] };
+    mortgage: {
+      available: boolean; reason?: string; dailyRate: number; maxLtv: number; minDscr: number; terms: number[]; minCents: number;
+      buildings: { id: string; name: string; resaleCents: number; maxCents: number; mortgaged: boolean }[];
+    };
+    creditLine: { available: boolean; reason?: string; limitCents: number; dailyRate: number };
   };
+  savings: { balanceCents: number; dailyRate: number; capCents: number };
   upkeep: { dailyCents: number; arrearsCents: number };
   overdraft: { limitCents: number; dailyRate: number; drawFeeCents: number };
   borrowBlockedUntil: number | null;

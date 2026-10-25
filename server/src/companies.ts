@@ -48,7 +48,7 @@ export async function createCompany(
         throw err;
       }
     }
-    await tx.query("INSERT INTO accounts (company_id, kind) VALUES ($1, 'cash'), ($1, 'escrow'), ($1, 'bond'), ($1, 'wallet')", [company.id]);
+    await tx.query("INSERT INTO accounts (company_id, kind) VALUES ($1, 'cash'), ($1, 'escrow'), ($1, 'bond'), ($1, 'wallet'), ($1, 'savings')", [company.id]);
     const capital = input.capitalCents ?? toCents(STARTING_CAPITAL);
     const faucet = await systemAccount(tx, 'faucet:starting_capital');
     const cash = await companyAccount(tx, company.id, 'cash');

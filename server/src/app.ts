@@ -15,7 +15,7 @@ import { claimAll, claimTier, seasonView, setTitle } from './season';
 import { buyFromStore, createListing, retailView, setShelf, storeListings, withdrawListing } from './retail';
 import { buyItem, cashflowHistory, declareDividend, ownerWithdrawal, sellItem, setSalary, wealthView } from './wealth';
 import { activity, companyState } from './state';
-import { bankOverview, repayLoan, restructureLoan, takeLoan } from './bank';
+import { bankOverview, depositSavings, drawCredit, openCreditLine, repayCredit, repayLoan, restructureLoan, takeLoan, withdrawSavings } from './bank';
 import { closeNextDay } from './daily';
 import { acceptContract, offerContract, rejectContract, terminateContract } from './contracts';
 import { contractsView, processContracts, suppliers } from './contractWork';
@@ -168,7 +168,10 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
 
   app.post('/api/loans', async (req, reply) => {
     const body = z
-      .object({ product: z.enum(['starter', 'term']), principalCents: z.number().int().positive().optional(), days: z.number().int().positive().optional() })
+      .object({
+        product: z.enum(['starter', 'term', 'mortgage']), principalCents: z.number().int().positive().optional(),
+        days: z.number().int().positive().optional(), buildingId: uuid.optional(),
+      })
       .parse(req.body);
     const result = await withTx(db, (tx) => takeLoan(tx, req.company.id, body));
     return reply.status(201).send(result);
@@ -182,6 +185,28 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
   app.post('/api/loans/:id/restructure', async (req) => {
     const id = uuid.parse((req.params as { id: string }).id);
     return withTx(db, (tx) => restructureLoan(tx, req.company.id, id));
+  });
+
+  app.post('/api/credit-line', async (req, reply) => {
+    const result = await withTx(db, (tx) => openCreditLine(tx, req.company.id));
+    return reply.status(201).send(result);
+  });
+  app.post('/api/credit-line/draw', async (req) => {
+    const body = z.object({ amountCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => drawCredit(tx, req.company.id, body.amountCents));
+  });
+  app.post('/api/credit-line/repay', async (req) => {
+    const body = z.object({ amountCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => repayCredit(tx, req.company.id, body.amountCents));
+  });
+
+  app.post('/api/savings/deposit', async (req) => {
+    const body = z.object({ amountCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => depositSavings(tx, req.company.id, body.amountCents));
+  });
+  app.post('/api/savings/withdraw', async (req) => {
+    const body = z.object({ amountCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => withdrawSavings(tx, req.company.id, body.amountCents));
   });
 
   app.post('/api/upkeep/pay', async (req) =>

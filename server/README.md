@@ -101,6 +101,15 @@ Local development sign-in for the seeded demo company: `dev@mercantile.test` / `
 - **NPC markets** (`src/npc.ts`): a vendor sells raw inputs at reference price (sink); NPC buyers pay reference ×
   quality bonus with 100/90/80/70% volume tiers per game day (faucet).
 
+- **Mortgages, credit line, savings** (`src/bank.ts`, rules in `shared/bank.ts`):
+  - *Building mortgage* (Lv 8): secured on one building, up to the credit tier's max LTV × resale value (70% of
+    what was spent on it), 30–90 days, at the tier rate − 0.03%/day, repaid by EMI like a term loan. One per
+    building. In receivership the mortgaged building's sale repays its mortgage before anything else (a lien).
+  - *Line of credit* (Lv 12): revolving, limit = 30% of the last 7 game days' revenue, reviewed weekly at the
+    daily close. Interest (tier rate + 0.05%/day) is charged daily on the drawn balance only and follows the
+    normal late-payment ladder; drawing is blocked while interest is overdue.
+  - *Savings*: a `savings` account per company; deposits and withdrawals are instant, interest is 0.02%/day on up
+    to 500k CR (a small `faucet:deposit_interest`). Receivership applies savings to the debts first.
 - **Daily close** (`src/daily.ts`): when a game day ends, each company is settled in one transaction:
   loan installments first (EMI, daily amortization), then upkeep for every building (`upkeep × level`).
   If cash runs short, an automatic overdraft (up to 5,000 CR, 0.5%/day + 50 CR fee) covers upkeep and is repaid
@@ -164,6 +173,8 @@ With `Authorization: Bearer <token>`: `GET /api/me`, `GET /api/activity`, `POST 
 `DELETE /api/orders/:id`, `POST /api/npc/buy` `{productId, qty}`, `POST /api/npc/sell` `{productId, qty, quality}`,
 `GET /api/bank`, `POST /api/loans` `{product: 'starter'|'term', principalCents?, days?}`, `POST /api/loans/:id/repay`,
 `POST /api/loans/:id/restructure`, `POST /api/upkeep/pay`,
+`POST /api/loans` also takes `{product: 'mortgage', buildingId, principalCents, days}`; `POST /api/credit-line`,
+`POST /api/credit-line/draw|repay` `{amountCents}`, `POST /api/savings/deposit|withdraw` `{amountCents}`,
 `GET /api/contracts`, `POST /api/contracts` `{counterpartyId, role: 'buy'|'sell', terms}`, `POST /api/contracts/:id/accept|reject|terminate`,
 `GET /api/suppliers?productId=`, `GET /api/rfqs`, `POST /api/rfqs`, `POST /api/rfqs/:id/bids` `{priceCents}`,
 `POST /api/rfqs/:id/award` `{bidId}`, `POST /api/rfqs/:id/cancel`.
@@ -186,6 +197,6 @@ by that many game hours and processes them.
 
 ## Not built yet
 
-Player trucking firms, mortgages, lines of credit and savings, player bonds, a player auction in receivership, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
+Player trucking firms, player bonds, a player auction in receivership, contract disputes, level-up rewards, monthly and yearly contests, a friends/rivals board, linked-account exclusion, the recipes that research tiers name (most of those products don't exist yet),
 dress and sneaker templates (no garment factory yet), luxury auctions, renting, password reset and email verification, rate limiting beyond sign-in, and
 linked-account detection.

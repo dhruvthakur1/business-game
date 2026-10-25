@@ -2,7 +2,7 @@ import type { Tx } from './db';
 import { badRequest, mapDbError } from './errors';
 
 /** Company-owned account kinds. */
-export type CompanyAccountKind = 'cash' | 'escrow' | 'bond' | 'wallet';
+export type CompanyAccountKind = 'cash' | 'escrow' | 'bond' | 'wallet' | 'savings';
 
 /** System accounts are the faucets and sinks that create and destroy money. */
 export type SystemAccountKind =
@@ -12,6 +12,7 @@ export type SystemAccountKind =
   | 'sink:operations'
   | 'sink:wages'
   | 'sink:freight'
+  | 'faucet:deposit_interest'
   | 'sink:materials'
   | 'sink:brands'
   | 'sink:income_tax'
@@ -38,6 +39,8 @@ export type TxnKind =
   | 'op_cost'
   | 'wages'
   | 'freight'
+  | 'savings'
+  | 'savings_interest'
   | 'brand_registration'
   | 'owner_payout'
   | 'luxury_purchase'
