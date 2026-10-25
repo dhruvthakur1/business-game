@@ -11,6 +11,7 @@ import { npcBuy, npcSell } from './npc';
 import { buyBuilding, collect, setBuildingDesign, startJob, upgradeBuilding } from './production';
 import { applyPoints, researchView, setFocus } from './research';
 import { allDesigns, brandNameStatus, createDesign, designerView, registerBrand } from './brands';
+import { claimAll, claimTier, seasonView, setTitle } from './season';
 import { buyFromStore, createListing, retailView, setShelf, storeListings, withdrawListing } from './retail';
 import { buyItem, cashflowHistory, declareDividend, ownerWithdrawal, sellItem, setSalary, wealthView } from './wealth';
 import { activity, companyState } from './state';
@@ -394,6 +395,19 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
     const id = uuid.parse((req.params as { listingId: string }).listingId);
     const result = await withTx(db, (tx) => buyFromStore(tx, req.company.id, id));
     return reply.status(201).send(result);
+  });
+
+  // ---------- Season pass ----------
+  app.get('/api/season', async (req) => seasonView(db, req.company.id));
+
+  app.post('/api/season/claim', async (req) => {
+    const body = z.object({ tier: z.number().int().optional() }).parse(req.body ?? {});
+    return withTx(db, (tx) => (body.tier === undefined ? claimAll(tx, req.company.id) : claimTier(tx, req.company.id, body.tier).then((c) => ({ claimed: [c] }))));
+  });
+
+  app.post('/api/profile/title', async (req) => {
+    const body = z.object({ title: z.string().max(80).nullable() }).parse(req.body);
+    return withTx(db, (tx) => setTitle(tx, req.company.id, body.title));
   });
 
   // ---------- Leagues & contests ----------

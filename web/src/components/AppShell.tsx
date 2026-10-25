@@ -1,5 +1,4 @@
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
-import { COMPANY } from '../data/mock';
 import { compact, num } from '../lib/format';
 import { useGame } from '../state/game';
 import { Icon, Logo, type IconName } from './Icon';
@@ -34,6 +33,7 @@ const GROUPS: { label: string; items: NavItem[] }[] = [
     label: 'Compete & live',
     items: [
       { to: '/app/leagues', label: 'Leagues', icon: 'trophy' },
+      { to: '/app/season', label: 'Season pass', icon: 'star' },
       { to: '/app/showroom', label: 'Showroom', icon: 'gem' },
       { to: '/app/catalog', label: 'Catalog', icon: 'grid' },
     ],
@@ -52,7 +52,7 @@ function Sidebar() {
   const { ready, company, me, signOut } = useGame();
   const navigate = useNavigate();
   const xp = me?.xp;
-  const s = COMPANY.season;
+  const s = me?.season;
   const name = company?.name ?? '—';
   const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
   const level = company?.level ?? 1;
@@ -68,6 +68,7 @@ function Sidebar() {
           <span className="avatar">{initials}</span>
           <div className="stack-sm" style={{ gap: 2, minWidth: 0 }}>
             <strong>{name}</strong>
+            {s?.title && <span className="small goldtx" style={{ fontWeight: 600 }}>{s.title}</span>}
             <span className="small muted">Lv {level}{me?.league ? ` · ${me.league.tier} · ${me.league.division}` : ''}</span>
           </div>
         </div>
@@ -92,19 +93,22 @@ function Sidebar() {
               {item.label}
               {item.label === 'Production' && ready.length > 0 && <span className="nav-badge">{ready.length}</span>}
               {item.label === 'Leagues' && me?.league && <span className="nav-meta">#{me.league.rank}</span>}
+              {item.label === 'Season pass' && !!s?.unclaimed && <span className="nav-badge">{s.unclaimed}</span>}
             </NavLink>
           ))}
         </div>
       ))}
 
-      <div className="company-card" style={{ marginTop: 'auto' }}>
-        <div className="row-between" style={{ fontSize: 13 }}>
-          <strong>{s.name}</strong>
-          <span className="muted">{s.daysLeft} d</span>
-        </div>
-        <ProgressBar value={s.tier / s.tiers} size="thin" label="Season progress" />
-        <span className="small muted">Tier {s.tier} / {s.tiers} · next: {s.next}</span>
-      </div>
+      {s && (
+        <Link to="/app/season" className="company-card" style={{ marginTop: 'auto', color: 'inherit' }}>
+          <div className="row-between" style={{ fontSize: 13 }}>
+            <strong>Season {s.number} · {s.name}</strong>
+            <span className="muted">{s.daysLeft} d</span>
+          </div>
+          <ProgressBar value={s.tier / s.tiers} size="thin" label="Season progress" />
+          <span className="small muted">Tier {s.tier} / {s.tiers}{s.next ? ` · next: ${s.next}` : ' · complete'}</span>
+        </Link>
+      )}
       {company && (
         <div className="row-between small" style={{ padding: '4px 4px 0', gap: 8 }}>
           <span className="muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{me?.account?.email ?? 'Demo company'}</span>

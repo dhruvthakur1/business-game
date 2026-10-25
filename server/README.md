@@ -62,6 +62,12 @@ Local development sign-in for the seeded demo company: `dev@mercantile.test` / `
   deletes the session. Unknown emails and wrong passwords get the same error and similar timing; 10 failures for
   an email (or 30 from one address) block sign-in for 15 minutes. The failure counters are in memory, and behind a
   proxy Fastify's `trustProxy` must be set for per-address limits to see real client IPs.
+- **Season pass** (`src/season.ts`, rules in `shared/season.ts`): seasons are 28 game days (4 league weeks),
+  numbered from the first league week and named in a cycle (Iron Age, Steam Age, Electric Age…). XP earned in the
+  season fills 40 tiers of 400 XP. Each tier has one reward to claim during that season: wallet cash (odd tiers,
+  from a `faucet:season_rewards` account), research points (even tiers), a truck livery (every 5th), a profile
+  title (every 10th; one can be equipped and shows under the company name) and a season trophy at tier 40.
+  Unclaimed rewards expire with the season.
 - **Retail** (`src/retail.ts`, rules in `shared/retail.ts`):
   - *Supermarket*: a standing shelf (product, quality, price) runs as a 4-hour production job. Each cycle stocks up
     to 60 × level units of bread or bread designs from the warehouse and charges the op cost. At collect, NPC
@@ -159,6 +165,7 @@ With `Authorization: Bearer <token>`: `GET /api/me`, `GET /api/activity`, `POST 
 `GET /api/buildings/:id/retail`, `POST /api/buildings/:id/shelf` `{productId, quality, priceCents}`,
 `POST /api/buildings/:id/listings` `{productId, quality, qty, priceCents}`, `DELETE /api/listings/:id`,
 `GET /api/stores`, `POST /api/stores/:listingId/buy`.
+`GET /api/season`, `POST /api/season/claim` `{tier?}` (omit to claim all), `POST /api/profile/title` `{title | null}`.
 
 Dev only (`DEMO_LOGIN` on): `POST /api/dev/close-day` runs the company's next daily close now;
 `POST /api/dev/advance-contracts` `{hours}` shifts the company's contract windows and RFQ deadlines into the past

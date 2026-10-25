@@ -1,6 +1,7 @@
 /** Response shapes of the Mercantile API (see server/src/app.ts). Money is in cents. */
 import type { TemplateId, VariantTier } from '../../../shared/designer';
 import type { FamilyId } from '../../../shared/research';
+import type { SeasonReward } from '../../../shared/season';
 
 export interface ServerCompany {
   id: string;
@@ -48,6 +49,7 @@ export interface MeResponse {
   company: ServerCompany;
   xp: XpSummary;
   league: { week: number; endsAt: string; tier: LeagueTier; division: string; rank: number; groupSize: number } | null;
+  season: SeasonSummary;
   serverTime: string;
   timeScale: number;
   cashCents: number;
@@ -425,4 +427,23 @@ export interface StoreListing {
   quality: number;
   qty: number;
   priceCents: number;
+}
+
+export interface SeasonSummary {
+  number: number;
+  name: string;
+  daysLeft: number;
+  xp: number;
+  tier: number;
+  tiers: number;
+  xpPerTier: number;
+  unclaimed: number;
+  next: string | null;
+  /** Equipped profile title. */
+  title: string | null;
+}
+
+export interface SeasonResponse extends SeasonSummary {
+  rewards: { tier: number; reward: SeasonReward; label: string; reached: boolean; claimed: boolean }[];
+  cosmetics: { kind: 'livery' | 'title'; name: string; season: number }[];
 }

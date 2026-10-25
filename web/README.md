@@ -52,4 +52,7 @@ reads `/api/cashflow`.
 Retail building pages (`src/screens/RetailPanel.tsx`) set the Supermarket shelf with a live sales and revenue
 preview, or manage Luxury Store listings. The Showroom lists every player Luxury Store's stock for wallet purchases.
 
-Still demo data: the season pass box in the sidebar.
+The Season pass (`/app/season`) and the sidebar season box read `/api/season` and `/api/me`: tiers, rewards to
+claim, and titles to equip.
+
+Sample data is left only on the marketing landing page.

@@ -15,6 +15,7 @@ import { Onboarding } from './screens/Onboarding';
 import { Research } from './screens/Research';
 import { Showroom } from './screens/Showroom';
 import { SignIn } from './screens/SignIn';
+import { Season } from './screens/Season';
 
 function NotFound() {
   return (
@@ -45,6 +46,7 @@ export function App() {
             <Route path="contests" element={<Contests />} />
             <Route path="contests/:id" element={<Contests />} />
             <Route path="showroom" element={<Showroom />} />
+            <Route path="season" element={<Season />} />
             <Route path="catalog" element={<Catalog />} />
             <Route path="*" element={<NotFound />} />
           </Route>

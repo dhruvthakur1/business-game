@@ -21,7 +21,6 @@ export const COMPANY = {
   avgDailyOpProfit: 6988,
   league: 'Gold' as LeagueName,
   leagueRank: 6,
-  season: { name: 'Season 3 · Iron Age', daysLeft: 12, tier: 17, tiers: 40, next: 'steel truck livery' },
 };
 
 export const START_CASH = 248_310;

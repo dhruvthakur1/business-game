@@ -8,6 +8,7 @@ import { xpSummary } from './xp';
 import { leagueSummary } from './leagues';
 import { allDesigns } from './brands';
 import { researchPoints } from './research';
+import { seasonSummary } from './season';
 
 type Q = Pick<Tx, 'query'>;
 
@@ -72,7 +73,7 @@ export async function debtCents(q: Q, companyId: string): Promise<number> {
 
 /** Everything the client needs to render the company dashboard in one round trip. */
 export async function companyState(db: Db, company: Company) {
-  const [accounts, inventory, buildings, assets, debt, flow, orders, flags, xp, league, research, designs] = await Promise.all([
+  const [accounts, inventory, buildings, assets, debt, flow, orders, flags, xp, league, research, designs, season] = await Promise.all([
     db.query<{ kind: string; balance_cents: number }>('SELECT kind, balance_cents FROM accounts WHERE company_id = $1', [company.id]),
     listInventory(db, company.id),
     listBuildings(db, company.id),
@@ -85,6 +86,7 @@ export async function companyState(db: Db, company: Company) {
     leagueSummary(db, company.id),
     researchPoints(db, company.id),
     allDesigns(db),
+    seasonSummary(db, company.id),
   ]);
   const bal = (kind: string) => accounts.rows.find((a) => a.kind === kind)?.balance_cents ?? 0;
 
@@ -93,6 +95,7 @@ export async function companyState(db: Db, company: Company) {
     company: { ...company, level: xp.level },
     xp,
     league,
+    season,
     serverTime: new Date().toISOString(),
     timeScale: config.timeScale,
     cashCents: bal('cash'),
