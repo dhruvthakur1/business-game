@@ -49,4 +49,7 @@ The Showroom (`/app/showroom`) runs on `/api/wealth`: wallet, salary, dividends 
 luxury purchases and buyback, prestige and the trophy cabinet. The HQ cash-flow chart (`src/components/CashflowChart.tsx`)
 reads `/api/cashflow`.
 
+Retail building pages (`src/screens/RetailPanel.tsx`) set the Supermarket shelf with a live sales and revenue
+preview, or manage Luxury Store listings. The Showroom lists every player Luxury Store's stock for wallet purchases.
+
 Still demo data: the season pass box in the sidebar.

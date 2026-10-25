@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, toCr } from '../api/client';
-import type { PayoutKind, WealthResponse } from '../api/types';
+import type { PayoutKind, StoreListing, WealthResponse } from '../api/types';
+import { productById } from '../data/catalog';
 import { TopBar } from '../components/AppShell';
 import { Card, ProgressBar, Segmented, StatTile, Stepper } from '../components/ui';
 import { personalIncomeTax } from '../lib/economy';
@@ -33,10 +34,13 @@ export function Showroom() {
   const [amount, setAmount] = useState<number | null>(null);
   const [salary, setSalary] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [listings, setListings] = useState<StoreListing[]>([]);
 
   const load = useCallback(async () => {
     try {
-      setData(await api<WealthResponse>('/wealth'));
+      const [wealth, stores] = await Promise.all([api<WealthResponse>('/wealth'), api<{ listings: StoreListing[] }>('/stores')]);
+      setData(wealth);
+      setListings(stores.listings);
       setError(null);
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);
@@ -102,6 +106,12 @@ export function Showroom() {
       notify(payKind === 'dividend' ? 'Dividend paid' : 'Withdrawal made', `${dec(toCr(res.netCents))} CR reached your wallet after ${dec(toCr(res.taxCents))} CR tax.`);
     }
   };
+  const buyFromStore = async (l: StoreListing) => {
+    const res = await run(() => api(`/stores/${l.id}/buy`, { body: {} }));
+    if (res) notify(`${productById(l.productId).name} is yours`, `Bought from ${l.sellerName} for ${num(toCr(l.priceCents))} CR.`);
+  };
+  const storePieces = data.owned.filter((o) => o.productId);
+
   const saveSalary = async () => {
     const res = await run(() => api('/wealth/salary', { body: { salaryCents: Math.round(salaryValue * 100) } }));
     if (res) {
@@ -236,6 +246,62 @@ export function Showroom() {
           </Card>
         </div>
       </section>
+
+      <Card title="Player luxury stores" action={<span className="small muted">Other companies’ Luxury Stores · paid from your wallet</span>}>
+        {storePieces.length > 0 && (
+          <div className="row" style={{ gap: 12 }}>
+            {storePieces.map((o) => {
+              const p = productById(o.productId!);
+              return (
+                <div key={o.itemId} className="inset row" style={{ gap: 10, alignItems: 'center', flexWrap: 'nowrap' }}>
+                  {p.art && <img src={p.art} alt="" width={44} height={44} style={{ objectFit: 'contain' }} />}
+                  <div className="stack-sm" style={{ gap: 2 }}>
+                    <strong style={{ fontSize: 14 }}>{p.name} · Q{o.quality ?? 0}</strong>
+                    <span className="small muted">Paid {num(toCr(o.priceCents))} · {o.rarity === 'limited' ? 'limited' : 'common'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    disabled={busy}
+                    onClick={() => void run(async () => {
+                      const r = await api<{ proceedsCents: number }>(`/wealth/items/${encodeURIComponent(o.itemId)}/sell`, { body: {} });
+                      notify(`Sold ${p.name}`, `${dec(toCr(r.proceedsCents))} CR back in your wallet.`, 'info');
+                      return r;
+                    })}
+                  >
+                    Sell for {num(toCr(o.priceCents) * CATEGORY_RULES.watch.buyback)}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {listings.length === 0 ? (
+          <span className="muted">No player stores have stock right now.</span>
+        ) : (
+          <div className="stack-sm" style={{ gap: 8 }}>
+            {listings.map((l) => {
+              const p = productById(l.productId);
+              const ownedAlready = data.owned.some((o) => o.productId === l.productId);
+              const short = wallet < toCr(l.priceCents);
+              return (
+                <div key={l.id} className="list-row" style={{ alignItems: 'center', gap: 12 }}>
+                  {p.art && <img src={p.art} alt="" width={40} height={40} style={{ objectFit: 'contain' }} />}
+                  <span style={{ flex: 1 }}>
+                    <strong>{p.name} · Q{l.quality}</strong>
+                    <span className="small muted"> · {l.storeName}, {l.sellerName} · {num(l.qty)} left</span>
+                  </span>
+                  <span className="mono">{num(toCr(l.priceCents))} CR</span>
+                  <button type="button" className="btn btn-secondary" disabled={busy || l.mine || ownedAlready || short} onClick={() => void buyFromStore(l)}>
+                    {l.mine ? 'Your store' : ownedAlready ? 'Owned' : short ? 'Not enough' : 'Buy'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <span className="small muted">One of each piece per collection. Store pieces count toward prestige and sell back to the NPC shop at 70% of what you paid.</span>
+      </Card>
     </>
   );
 }

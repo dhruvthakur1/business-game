@@ -12,6 +12,7 @@ import type { ServerDesign } from '../api/types';
 import { api } from '../api/client';
 import { BUILDING_FAMILY, FAMILIES, RESEARCH_PRODUCT, researchBonus, researchTier } from '../../../shared/research';
 import { designEconomics, VARIANT_TIERS, variantInputQty } from '../../../shared/designer';
+import { RetailPanel } from './RetailPanel';
 
 /** Mirrors server/src/production.ts: research bonus, and a design's extra inputs, materials and price. */
 function economics(type: BuildingType, level: number, lotQ: number, bonus: number, design?: ServerDesign) {
@@ -138,11 +139,15 @@ export function BuildingDetail() {
             )}
             {b.status === 'ready' && b.readyOutput && (
               <div className="row-between">
-                <span>{num(b.readyOutput.qty)} {productById(b.readyOutput.productId).name.toLowerCase()} · <QualityStars q={b.readyOutput.quality} /></span>
+                <span>
+                  {num(b.readyOutput.qty)} {productById(b.readyOutput.productId).name.toLowerCase()} · <QualityStars q={b.readyOutput.quality} />
+                  {type.id === 'supermarket' && <span className="muted"> on the shelf · sales settle when you collect</span>}
+                </span>
                 <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void run(() => collect([b.id]))}>Collect &amp; restart</button>
               </div>
             )}
-            {b.status === 'idle' && !hasRecipe && <p className="muted">Retail buildings don’t run production jobs yet.</p>}
+            {b.status === 'idle' && type.id === 'supermarket' && <p className="muted">Idle. Set the shelf below and start a cycle.</p>}
+            {type.id === 'luxury_store' && <p className="muted">Sales happen whenever another player buys from your listings with their wallet.</p>}
             {b.status === 'idle' && hasRecipe && <p className="muted">Idle. Choose a lot below and start a job.</p>}
           </Card>
 
@@ -163,6 +168,8 @@ export function BuildingDetail() {
               <span className="small muted">A new recipe applies from the next cycle.</span>
             </Card>
           )}
+
+          {(type.id === 'supermarket' || type.id === 'luxury_store') && <RetailPanel buildingId={b.id} typeId={type.id} idle={b.status === 'idle'} />}
 
           {hasRecipe && now && (
             <Card title={b.status === 'idle' ? 'Start a job' : 'Next job preview'}>

@@ -10,6 +10,7 @@ import { npcBuy, npcSell } from './npc';
 import { buyBuilding, collect, setBuildingDesign, startJob, upgradeBuilding } from './production';
 import { applyPoints, researchView, setFocus } from './research';
 import { allDesigns, brandNameStatus, createDesign, designerView, registerBrand } from './brands';
+import { buyFromStore, createListing, retailView, setShelf, storeListings, withdrawListing } from './retail';
 import { buyItem, cashflowHistory, declareDividend, ownerWithdrawal, sellItem, setSalary, wealthView } from './wealth';
 import { activity, companyState } from './state';
 import { bankOverview, repayLoan, restructureLoan, takeLoan } from './bank';
@@ -342,6 +343,35 @@ export function buildApp(db: Db, opts: { logger?: boolean } = {}): FastifyInstan
   app.post('/api/wealth/items/:itemId/sell', async (req) => {
     const itemId = z.string().max(40).parse((req.params as { itemId: string }).itemId);
     return withTx(db, (tx) => sellItem(tx, req.company.id, itemId));
+  });
+
+  // ---------- Retail ----------
+  app.get('/api/buildings/:id/retail', async (req) => retailView(db, req.company.id, uuid.parse((req.params as { id: string }).id)));
+
+  app.post('/api/buildings/:id/shelf', async (req) => {
+    const id = uuid.parse((req.params as { id: string }).id);
+    const body = z.object({ productId, quality: z.number().int().min(0).max(5), priceCents: z.number().int().positive() }).parse(req.body);
+    return withTx(db, (tx) => setShelf(tx, req.company.id, id, body));
+  });
+
+  app.post('/api/buildings/:id/listings', async (req, reply) => {
+    const id = uuid.parse((req.params as { id: string }).id);
+    const body = z.object({ productId, quality: z.number().int().min(0).max(5), qty: z.number().int().positive(), priceCents: z.number().int().positive() }).parse(req.body);
+    const result = await withTx(db, (tx) => createListing(tx, req.company.id, id, body));
+    return reply.status(201).send(result);
+  });
+
+  app.delete('/api/listings/:id', async (req) => {
+    const id = uuid.parse((req.params as { id: string }).id);
+    return withTx(db, (tx) => withdrawListing(tx, req.company.id, id));
+  });
+
+  app.get('/api/stores', async (req) => ({ listings: await storeListings(db, req.company.id) }));
+
+  app.post('/api/stores/:listingId/buy', async (req, reply) => {
+    const id = uuid.parse((req.params as { listingId: string }).listingId);
+    const result = await withTx(db, (tx) => buyFromStore(tx, req.company.id, id));
+    return reply.status(201).send(result);
   });
 
   // ---------- Leagues & contests ----------

@@ -11,6 +11,7 @@ import { XP_PER_CR_VALUE_ADD } from '../../shared/levels';
 import { BUILDING_FAMILY, RESEARCH_PRODUCT, researchBonus } from '../../shared/research';
 import { VARIANT_TIERS, variantInputQty, type VariantTier } from '../../shared/designer';
 import { addResearch, familyTier } from './research';
+import { settleShelfJob, startShelfJob } from './retail';
 
 export interface BuildingView {
   id: string;
@@ -77,13 +78,16 @@ export async function startJob(tx: Tx, companyId: string, buildingId: string, op
   if (Number(arrears.rows[0].upkeep_arrears_cents) > 0) {
     throw conflict('upkeep_arrears', 'Production is paused until unpaid upkeep is settled.');
   }
-  if (type.outputs.length === 0) throw conflict('not_producer', `${type.name} does not run production jobs.`);
+  const isShelf = type.id === 'supermarket';
+  if (type.outputs.length === 0 && !isShelf) throw conflict('not_producer', `${type.name} does not run production jobs.`);
 
   const running = await tx.query<{ finishes_at: Date }>("SELECT finishes_at FROM production_jobs WHERE building_id = $1 AND state = 'running'", [b.id]);
   if (running.rows[0]) {
     const done = running.rows[0].finishes_at.getTime() <= Date.now();
     throw conflict('busy', done ? 'Collect the finished job first.' : `${b.name} is already running a job.`);
   }
+  // A supermarket cycle stocks the shelf instead of consuming a recipe.
+  if (isShelf) return startShelfJob(tx, companyId, b.id, type);
 
   // A building set to a design runs the same recipe with more inputs, pays for materials and makes the design.
   const design = b.design_id
@@ -139,6 +143,8 @@ export interface Collected {
   quality: number;
   /** Set when research points went straight to the lab's focus family instead of the warehouse. */
   researchFamily?: string;
+  /** Supermarket cycles: units sold to shoppers and what they paid (unsold units go back to the warehouse). */
+  retail?: { sold: number; unsold: number; proceedsCents: number };
   restarted: boolean;
   restartError?: string;
   xp: number;
@@ -153,17 +159,24 @@ async function basePrice(tx: Tx, productId: string): Promise<number> {
  * running to collected exactly once, so repeated calls never double-credit goods.
  */
 export async function collect(tx: Tx, companyId: string, opts: { buildingIds?: string[]; restart?: boolean } = {}): Promise<Collected[]> {
-  const res = await tx.query<{ id: string; building_id: string; output_product: string; output_qty: number; output_quality: number; input_quality: number; input_value_cents: number }>(
+  const res = await tx.query<{ id: string; building_id: string; output_product: string; output_qty: number; output_quality: number; input_quality: number; input_value_cents: number; retail_price_cents: number | null }>(
     `UPDATE production_jobs j SET state = 'collected', collected_at = now()
      FROM buildings b
      WHERE j.building_id = b.id AND b.company_id = $1 AND j.state = 'running' AND j.finishes_at <= now()
        AND ($2::uuid[] IS NULL OR b.id = ANY($2::uuid[]))
-     RETURNING j.id, j.building_id, j.output_product, j.output_qty, j.output_quality, j.input_quality, j.input_value_cents`,
+     RETURNING j.id, j.building_id, j.output_product, j.output_qty, j.output_quality, j.input_quality, j.input_value_cents, j.retail_price_cents`,
     [companyId, opts.buildingIds ?? null],
   );
   const out: Collected[] = [];
   const focus = (await tx.query<{ research_focus: string | null }>('SELECT research_focus FROM companies WHERE id = $1', [companyId])).rows[0].research_focus;
   for (const row of res.rows) {
+    if (row.retail_price_cents !== null) {
+      const r = await settleShelfJob(tx, companyId, { ...row, retail_price_cents: row.retail_price_cents });
+      const item: Collected = { buildingId: row.building_id, productId: row.output_product, qty: row.output_qty, quality: row.output_quality, retail: { sold: r.sold, unsold: r.unsold, proceedsCents: r.proceedsCents }, restarted: false, xp: r.xp };
+      if (opts.restart) await restartJob(tx, companyId, row.building_id, item);
+      out.push(item);
+      continue;
+    }
     const toFocus = row.output_product === RESEARCH_PRODUCT && focus !== null;
     if (toFocus) await addResearch(tx, companyId, focus as Parameters<typeof addResearch>[2], row.output_qty, 'lab');
     else await addGoods(tx, companyId, row.output_product, row.output_quality, row.output_qty);
@@ -173,21 +186,24 @@ export async function collect(tx: Tx, companyId: string, opts: { buildingIds?: s
     const xp = await awardXp(tx, companyId, 'production', (valueAdd / 100) * XP_PER_CR_VALUE_ADD, { note: `${row.output_qty} ${row.output_product.replace('_', ' ')} produced` });
     const item: Collected = { buildingId: row.building_id, productId: row.output_product, qty: row.output_qty, quality: row.output_quality, restarted: false, xp: xp.awarded };
     if (toFocus) item.researchFamily = focus!;
-    if (opts.restart) {
-      await tx.query('SAVEPOINT restart');
-      try {
-        await startJob(tx, companyId, row.building_id, {});
-        await tx.query('RELEASE SAVEPOINT restart');
-        item.restarted = true;
-      } catch (err) {
-        await tx.query('ROLLBACK TO SAVEPOINT restart');
-        if (!(err instanceof GameError)) throw err;
-        item.restartError = err.message;
-      }
-    }
+    if (opts.restart) await restartJob(tx, companyId, row.building_id, item);
     out.push(item);
   }
   return out;
+}
+
+/** Tries to start the next cycle; a game error (no inputs, no cash) is reported, not thrown. */
+async function restartJob(tx: Tx, companyId: string, buildingId: string, item: Collected) {
+  await tx.query('SAVEPOINT restart');
+  try {
+    await startJob(tx, companyId, buildingId, {});
+    await tx.query('RELEASE SAVEPOINT restart');
+    item.restarted = true;
+  } catch (err) {
+    await tx.query('ROLLBACK TO SAVEPOINT restart');
+    if (!(err instanceof GameError)) throw err;
+    item.restartError = err.message;
+  }
 }
 
 export async function upgradeBuilding(tx: Tx, companyId: string, buildingId: string) {

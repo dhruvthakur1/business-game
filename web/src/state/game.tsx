@@ -215,18 +215,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     collect: async (ids) => {
       const res = await act(() => api<CollectResult>('/collect', { body: { buildingIds: ids, restart: true } }));
       if (!res || res.collected.length === 0) return;
-      const goods = res.collected.filter((c) => !c.researchFamily).map((c) => `${num(c.qty)} ${productById(c.productId).name.toLowerCase()}`).join(', ');
+      const shelves = res.collected.filter((c) => c.retail);
+      const goods = res.collected.filter((c) => !c.researchFamily && !c.retail).map((c) => `${num(c.qty)} ${productById(c.productId).name.toLowerCase()}`).join(', ');
       const rp = res.collected.filter((c) => c.researchFamily).reduce((s, c) => s + c.qty, 0);
       const stalled = res.collected.filter((c) => !c.restarted).length;
       const xp = res.collected.reduce((s, c) => s + c.xp, 0);
       notify(
         `Collected ${res.collected.length} job${res.collected.length > 1 ? 's' : ''}${xp ? ` · +${num(xp)} XP` : ''}`,
-        `${goods ? `${goods} added to your warehouse.` : ''}${rp ? ` ${num(rp)} research points applied to your lab focus.` : ''}${stalled ? ` ${stalled} building${stalled > 1 ? 's' : ''} need inputs to restart.` : ' Jobs restarted.'}`,
+        `${goods ? `${goods} added to your warehouse.` : ''}${shelves.map((c) => ` Shoppers bought ${num(c.retail!.sold)} ${productById(c.productId).name.toLowerCase()} for ${dec(toCr(c.retail!.proceedsCents))} CR.`).join('')}${rp ? ` ${num(rp)} research points applied to your lab focus.` : ''}${stalled ? ` ${stalled} building${stalled > 1 ? 's' : ''} need inputs to restart.` : ' Jobs restarted.'}`,
       );
     },
     startJob: async (buildingId, inputQuality) => {
-      const res = await act(() => api<{ finishesAt: string; outputQuality: number }>(`/buildings/${buildingId}/start`, { body: { inputQuality } }));
-      if (res) notify('Production started', `Output will be Q${res.outputQuality}.`);
+      const res = await act(() => api<{ finishesAt: string; outputQuality: number; stocked?: number; priceCents?: number }>(`/buildings/${buildingId}/start`, { body: { inputQuality } }));
+      if (res?.stocked !== undefined) notify('Shelf stocked', `${num(res.stocked)} units at ${dec(toCr(res.priceCents ?? 0))} CR each. Sales settle when you collect.`);
+      else if (res) notify('Production started', `Output will be Q${res.outputQuality}.`);
       return !!res;
     },
     upgrade: async (buildingId) => {

@@ -52,6 +52,17 @@ Environment: `DATABASE_URL`, `PORT` (4100), `TIME_SCALE` (60 — a 4h cycle take
   bought rung by rung per collection from the wallet, sold back at the category's buyback rate, and charged daily
   upkeep from the wallet at the close; an item whose upkeep can't be paid goes into storage (no prestige) instead
   of being seized. Prestige = Σ 100 × log10(price / 1,000) × rarity for displayed items + 100 per trophy.
+- **Retail** (`src/retail.ts`, rules in `shared/retail.ts`):
+  - *Supermarket*: a standing shelf (product, quality, price) runs as a 4-hour production job. Each cycle stocks up
+    to 60 × level units of bread or bread designs from the warehouse and charges the op cost. At collect, NPC
+    shoppers buy `min(stock, capacity × min(1, (1 − markup) × (1 + 0.1 × Q)))`, where the price may be from the
+    quality- and reputation-adjusted reference up to +35%. Sales are paid from the NPC buyer (faucet), logged as
+    NPC sales (contests, brand reputation), and the markup counts as value added; unsold units return to the
+    warehouse. Unlike direct NPC sales there are no daily volume tiers, so quality pays.
+  - *Luxury Store*: lists T7 goods (up to 20 × level units) at 1.2×–3× wholesale. Other players buy one of each
+    piece with their personal wallet; the store's company receives the price minus a 2% fee, and the piece joins
+    the buyer's collection (`product:<id>` personal item) with prestige and 70% NPC buyback. You can't buy from
+    your own store.
 - **Cash-flow history** (`GET /api/cashflow`): revenue (NPC sales, exchange and contract proceeds) and operating
   costs (op cost, upkeep, NPC and exchange/contract purchases net of refunds) per game day for the last 7 days.
 - **Exchange** (`src/exchange.ts`): limit orders with price-time priority, executing at the resting order's
@@ -134,6 +145,9 @@ With `Authorization: Bearer <token>`: `GET /api/me`, `GET /api/activity`, `POST 
 `GET /api/wealth`, `POST /api/wealth/salary` `{salaryCents}`, `POST /api/wealth/dividend` `{amountCents}`,
 `POST /api/wealth/withdraw` `{amountCents}`, `POST /api/wealth/items` `{itemId}`, `POST /api/wealth/items/:itemId/sell`,
 `GET /api/cashflow`.
+`GET /api/buildings/:id/retail`, `POST /api/buildings/:id/shelf` `{productId, quality, priceCents}`,
+`POST /api/buildings/:id/listings` `{productId, quality, qty, priceCents}`, `DELETE /api/listings/:id`,
+`GET /api/stores`, `POST /api/stores/:listingId/buy`.
 
 Dev only (`DEMO_LOGIN` on): `POST /api/dev/close-day` runs the company's next daily close now;
 `POST /api/dev/advance-contracts` `{hours}` shifts the company's contract windows and RFQ deadlines into the past

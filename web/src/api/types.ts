@@ -172,7 +172,7 @@ export interface PlaceOrderResult {
 }
 
 export interface CollectResult {
-  collected: { buildingId: string; productId: string; qty: number; quality: number; researchFamily?: string; restarted: boolean; restartError?: string; xp: number }[];
+  collected: { buildingId: string; productId: string; qty: number; quality: number; researchFamily?: string; retail?: { sold: number; unsold: number; proceedsCents: number }; restarted: boolean; restartError?: string; xp: number }[];
 }
 
 export type LoanStatus = 'active' | 'late' | 'restructure_offered' | 'collections' | 'repaid' | 'defaulted';
@@ -380,7 +380,7 @@ export interface WealthResponse {
   inflows30dCents: number;
   prestige: number;
   upkeepPerDayCents: number;
-  owned: { itemId: string; priceCents: number; stored: boolean; boughtAt: string | null }[];
+  owned: { itemId: string; priceCents: number; stored: boolean; boughtAt: string | null; productId: string | null; quality: number | null; rarity: string | null }[];
   trophies: { kind: string; title: string }[];
   payouts: { kind: PayoutKind; grossCents: number; taxCents: number; at: string }[];
 }
@@ -389,4 +389,38 @@ export interface CashflowDay {
   day: number;
   revenueCents: number;
   costsCents: number;
+}
+
+export interface PriceBand {
+  minCents: number;
+  maxCents: number;
+}
+
+export type RetailResponse =
+  | {
+      kind: 'supermarket';
+      capacity: number;
+      opCostCents: number;
+      shelf: { productId: string; quality: number; priceCents: number; band: PriceBand } | null;
+      lots: { productId: string; quality: number; qty: number; band: PriceBand }[];
+      recent: { productId: string; stocked: number; sold: number; proceedsCents: number; priceCents: number; at: string }[];
+    }
+  | {
+      kind: 'luxury_store';
+      capacity: number;
+      listed: number;
+      listings: { id: string; productId: string; quality: number; qty: number; priceCents: number }[];
+      lots: { productId: string; quality: number; qty: number; band: PriceBand }[];
+      recent: { productId: string; buyerName: string; priceCents: number; at: string }[];
+    };
+
+export interface StoreListing {
+  id: string;
+  sellerName: string;
+  storeName: string;
+  mine: boolean;
+  productId: string;
+  quality: number;
+  qty: number;
+  priceCents: number;
 }

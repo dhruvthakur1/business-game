@@ -9,6 +9,7 @@ import { toCents } from './ledger';
 import { npcSell } from './npc';
 import { buyBuilding, setBuildingDesign, startJob } from './production';
 import { createDesign } from './brands';
+import { createListing, setShelf } from './retail';
 import { companyAccount, systemAccount, transfer } from './ledger';
 
 /** Upserts products, building types and recipes from shared/catalog.ts. Safe to run repeatedly. */
@@ -52,6 +53,7 @@ export async function seedWorld(db: Db) {
   if (existing.rowCount) {
     await seedResearchAndBrands(db);
     await seedWealth(db);
+    await seedRetail(db);
     console.log('World already seeded; catalog refreshed.');
     return;
   }
@@ -125,6 +127,7 @@ export async function seedWorld(db: Db) {
   });
   await seedResearchAndBrands(db);
   await seedWealth(db);
+  await seedRetail(db);
   console.log('Seeded catalog, 4 market makers and the Northwind Holdings demo company.');
 }
 
@@ -177,6 +180,28 @@ export async function seedWealth(db: Db) {
       await tx.query('INSERT INTO personal_items (company_id, item_id, price_cents) VALUES ($1, $2, $3)', [nw.id, item, toCents(price)]);
     }
     await tx.query('UPDATE companies SET salary_cents = $2 WHERE id = $1', [nw.id, toCents(900)]);
+  });
+}
+
+/**
+ * Demo retail: Northwind's supermarket shelves Q1 bread at a 15% markup, and Ferro Labs (an NPC company) runs a
+ * luxury store with six watches so the Showroom has player-store stock. Skipped once any listing exists.
+ */
+export async function seedRetail(db: Db) {
+  if ((await db.query('SELECT 1 FROM store_listings LIMIT 1')).rowCount) return;
+  const id = async (name: string) => (await db.query<{ id: string }>('SELECT id FROM companies WHERE name = $1', [name])).rows[0]?.id;
+  const nw = await id('Northwind Holdings');
+  const ferro = await id('Ferro Labs');
+  if (!nw || !ferro) return;
+  await withTx(db, async (tx) => {
+    const market = (await tx.query<{ id: string }>("SELECT id FROM buildings WHERE company_id = $1 AND building_type_id = 'supermarket' LIMIT 1", [nw])).rows[0];
+    if (market) {
+      const bread = PRODUCT_DEFS.find((p) => p.id === 'bread')!;
+      await setShelf(tx, nw, market.id, { productId: 'bread', quality: 1, priceCents: Math.round(bread.refPrice * 100 * 1.08 * 1.15) });
+    }
+    const store = await buyBuilding(tx, ferro, 'luxury_store');
+    await addGoods(tx, ferro, 'luxury_watch', 1, 6);
+    await createListing(tx, ferro, store.id, { productId: 'luxury_watch', quality: 1, qty: 6, priceCents: toCents(1_350) });
   });
 }
 

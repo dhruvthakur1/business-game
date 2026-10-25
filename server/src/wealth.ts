@@ -1,6 +1,8 @@
 import { personalIncomeTax } from '../../shared/economy';
 import { ALL_ITEMS, CATEGORY_RULES, itemById, itemUpkeep, LADDERS, PAY_RULES, prestigeScore } from '../../shared/wealth';
 import { config } from './config';
+import { STORE_ITEM_PREFIX } from '../../shared/retail';
+import type { LuxuryItem } from '../../shared/wealth';
 import type { Db, Tx } from './db';
 import { badRequest, conflict, notFound } from './errors';
 import { companyAccount, systemAccount, toCents, transfer, post } from './ledger';
@@ -171,14 +173,22 @@ export async function buyItem(tx: Tx, companyId: string, itemId: string) {
   return { itemId: item.id, priceCents: price };
 }
 
-/** Sells an item back to the NPC shop at the category's buyback rate. */
+/** A piece bought from a player's luxury store, as a luxury item (T7 goods are watches today). */
+export function storeItem(itemId: string, name: string, priceCents: number, rarity: string | null): LuxuryItem {
+  return { id: itemId, name, category: 'watch', price: priceCents / 100, rarity: (rarity ?? 'common') as LuxuryItem['rarity'] };
+}
+
+/** Sells an item back to the NPC shop at the category's buyback rate (of what was paid). */
 export async function sellItem(tx: Tx, companyId: string, itemId: string) {
-  const item = itemById(itemId);
-  if (!item) throw notFound('Item');
+  const isStore = itemId.startsWith(STORE_ITEM_PREFIX);
+  const catalog = itemById(itemId);
+  if (!catalog && !isStore) throw notFound('Item');
   const row = (await tx.query<{ id: string; price_cents: number }>('DELETE FROM personal_items WHERE company_id = $1 AND item_id = $2 RETURNING id, price_cents', [companyId, itemId])).rows[0];
   if (!row) throw notFound('Item');
-  const proceeds = Math.round(Number(row.price_cents) * CATEGORY_RULES[item.category].buyback);
-  await transfer(tx, 'luxury_sale', `Sold ${item.name} back to the shop`, await systemAccount(tx, 'npc:luxury_shop'), await companyAccount(tx, companyId, 'wallet'), proceeds);
+  const category = catalog?.category ?? 'watch';
+  const name = catalog?.name ?? (await tx.query<{ name: string }>('SELECT name FROM products WHERE id = $1', [itemId.slice(STORE_ITEM_PREFIX.length)])).rows[0]?.name ?? 'item';
+  const proceeds = Math.round(Number(row.price_cents) * CATEGORY_RULES[category].buyback);
+  await transfer(tx, 'luxury_sale', `Sold ${name} back to the shop`, await systemAccount(tx, 'npc:luxury_shop'), await companyAccount(tx, companyId, 'wallet'), proceeds);
   return { itemId, proceedsCents: proceeds };
 }
 
@@ -194,9 +204,11 @@ export async function wealthView(db: Db, companyId: string) {
     db.query<{ salary_cents: number }>('SELECT salary_cents FROM companies WHERE id = $1', [companyId]),
     payoutLimits(db, companyId, day),
     inflows30d(db, companyId, day),
-    db.query<{ item_id: string; price_cents: number; stored: boolean; bought_at: Date }>(
-      'SELECT item_id, price_cents, stored, bought_at FROM personal_items WHERE company_id = $1',
-      [companyId],
+    db.query<{ item_id: string; price_cents: number; stored: boolean; bought_at: Date; quality: number | null; rarity: string | null; name: string | null }>(
+      `SELECT i.item_id, i.price_cents, i.stored, i.bought_at, i.quality, i.rarity, p.name
+       FROM personal_items i LEFT JOIN products p ON i.item_id = $2 || p.id
+       WHERE i.company_id = $1`,
+      [companyId, STORE_ITEM_PREFIX],
     ),
     db.query<{ kind: string; title: string }>('SELECT kind, title FROM trophies WHERE company_id = $1 ORDER BY id DESC', [companyId]),
     db.query<{ kind: PayoutKind; gross_cents: number; tax_cents: number; created_at: Date }>(
@@ -204,7 +216,9 @@ export async function wealthView(db: Db, companyId: string) {
       [companyId],
     ),
   ]);
-  const displayed = items.rows.filter((r) => !r.stored).map((r) => itemById(r.item_id)).filter((i) => i !== undefined);
+  const asItem = (r: (typeof items.rows)[number]) =>
+    r.item_id.startsWith(STORE_ITEM_PREFIX) ? storeItem(r.item_id, r.name ?? 'Store piece', Number(r.price_cents), r.rarity) : itemById(r.item_id);
+  const displayed = items.rows.filter((r) => !r.stored).map(asItem).filter((i) => i !== undefined);
   // Starter rungs (price 0) count as owned for everyone.
   const freebies = ALL_ITEMS.filter((i) => i.price === 0);
   const upkeepCents = items.rows.reduce((s, r) => {
@@ -219,8 +233,13 @@ export async function wealthView(db: Db, companyId: string) {
     prestige: prestigeScore(displayed, trophies.rows.length),
     upkeepPerDayCents: upkeepCents,
     owned: [
-      ...freebies.map((i) => ({ itemId: i.id, priceCents: 0, stored: false, boughtAt: null as string | null })),
-      ...items.rows.map((r) => ({ itemId: r.item_id, priceCents: Number(r.price_cents), stored: r.stored, boughtAt: r.bought_at.toISOString() })),
+      ...freebies.map((i) => ({ itemId: i.id, priceCents: 0, stored: false, boughtAt: null as string | null, productId: null as string | null, quality: null as number | null, rarity: null as string | null })),
+      ...items.rows.map((r) => ({
+        itemId: r.item_id, priceCents: Number(r.price_cents), stored: r.stored, boughtAt: r.bought_at.toISOString(),
+        // Store pieces: the product, its quality and rarity (catalog items have none).
+        productId: r.item_id.startsWith(STORE_ITEM_PREFIX) ? r.item_id.slice(STORE_ITEM_PREFIX.length) : null,
+        quality: r.quality, rarity: r.rarity,
+      })),
     ],
     trophies: trophies.rows,
     payouts: payouts.rows.map((p) => ({ kind: p.kind, grossCents: Number(p.gross_cents), taxCents: Number(p.tax_cents), at: p.created_at.toISOString() })),
